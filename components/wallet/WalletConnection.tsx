@@ -13,7 +13,7 @@
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useBalance } from "wagmi";
-import { Chain } from "viem";
+import { Chain, formatEther } from "viem";
 import { InfoRow } from "@/app/components/InfoRow";
 
 interface WalletConnectionProps {
@@ -126,9 +126,11 @@ export function WalletConnection({
                   address
                     ? isBalanceLoading
                       ? "查询中..."
-                      : `${balanceData?.formatted ?? "--"} ${
+                      : balanceData?.value
+                      ? `${formatEther(balanceData.value)} ${
                           balanceData?.symbol ?? ""
                         }`
+                      : "--"
                     : "连接后显示"
                 }
               />
@@ -152,8 +154,8 @@ export function WalletConnection({
               <InfoRow
                 label="账户余额"
                 value={
-                  balanceData
-                    ? `${balanceData.formatted} ${balanceData.symbol}`
+                  balanceData && balanceData.value
+                    ? `${formatEther(balanceData.value)} ${balanceData.symbol}`
                     : "加载中..."
                 }
                 isMono

@@ -11,9 +11,14 @@
 // ============================================================
 
 import { useState } from "react";
-import { useAccount, useBalance, useSendTransaction, useWaitForTransactionReceipt } from "wagmi";
+import {
+  useAccount,
+  useBalance,
+  useSendTransaction,
+  useWaitForTransactionReceipt,
+} from "wagmi";
 import { sepolia } from "wagmi/chains";
-import { parseEther, isAddress } from "viem";
+import { parseEther, formatEther, isAddress } from "viem";
 
 export function Form() {
   // 获取钱包连接状态和账户信息
@@ -48,6 +53,7 @@ export function Form() {
 
   // 处理转账
   const handleTransfer = async (e: React.FormEvent) => {
+    // 阻止表单默认提交行为
     e.preventDefault();
 
     // 验证地址
@@ -64,9 +70,12 @@ export function Form() {
     }
 
     // 检查余额
-    if (balanceData && parseFloat(balanceData.formatted) < amountNum) {
-      alert("余额不足");
-      return;
+    if (balanceData && balanceData.value) {
+      const balanceInEther = parseFloat(formatEther(balanceData.value));
+      if (balanceInEther < amountNum) {
+        alert("余额不足");
+        return;
+      }
     }
 
     // 检查网络
@@ -133,8 +142,9 @@ export function Form() {
             className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
           />
           {balanceData &&
+            balanceData.value &&
             amount &&
-            parseFloat(amount) > parseFloat(balanceData.formatted) && (
+            parseFloat(amount) > parseFloat(formatEther(balanceData.value)) && (
               <p className="mt-1 text-sm text-red-500">余额不足</p>
             )}
         </div>
@@ -201,4 +211,3 @@ export function Form() {
     </section>
   );
 }
-
