@@ -13,7 +13,8 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 // useAccount: Wagmi hook，获取当前连接的钱包账户信息
 // useBalance: Wagmi hook，查询钱包余额
-import { useAccount, useBalance } from "wagmi";
+// useDisconnect: Wagmi hook，断开钱包连接
+import { useAccount, useBalance, useDisconnect } from "wagmi";
 
 export default function Home() {
   // ============================================================
@@ -38,6 +39,13 @@ export default function Home() {
     address, // 要查询的地址
     query: { enabled: Boolean(address) }, // 只有当 address 存在时才发起查询
   });
+
+  // ============================================================
+  // 断开钱包连接
+  // ============================================================
+  // disconnect: 断开连接的函数
+  // isPending: 是否正在断开连接
+  const { disconnect, isPending: isDisconnecting } = useDisconnect();
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-10 px-6 py-16 text-zinc-900 dark:text-zinc-100">
@@ -122,15 +130,24 @@ export default function Home() {
       </section>
 
       {/* ============================================================
-          手动刷新余额按钮（仅在已连接时显示）
+          操作按钮区域（仅在已连接时显示）
           ============================================================ */}
       {address && (
-        <button
-          onClick={() => refetchBalance()} // 调用 refetchBalance 重新查询余额
-          className="self-start rounded-full border border-sky-500/40 px-5 py-2 text-sm font-semibold text-sky-600 transition hover:bg-sky-500/10 dark:text-sky-300"
-        >
-          重新获取余额
-        </button>
+        <div className="flex flex-wrap gap-4">
+          <button
+            onClick={() => refetchBalance()} // 调用 refetchBalance 重新查询余额
+            className="rounded-full border border-sky-500/40 px-5 py-2 text-sm font-semibold text-sky-600 transition hover:bg-sky-500/10 dark:text-sky-300"
+          >
+            重新获取余额
+          </button>
+          <button
+            onClick={() => disconnect()} // 调用 disconnect 断开钱包连接
+            disabled={isDisconnecting} // 断开连接过程中禁用按钮
+            className="rounded-full border border-red-500/40 px-5 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed dark:text-red-300"
+          >
+            {isDisconnecting ? "断开中..." : "断开连接"}
+          </button>
+        </div>
       )}
     </main>
   );
@@ -143,7 +160,7 @@ function InfoRow({
   label,
   value,
   isMono,
-}: { 
+}: {
   label: string;
   value: string;
   isMono?: boolean; // 是否使用等宽字体（适合显示地址、哈希等）
