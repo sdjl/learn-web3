@@ -6,16 +6,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { navItems } from "@/lib/config/navigation";
 
 export function Navigation() {
   const pathname = usePathname();
-
-  const navItems = [
-    { href: "/", label: "首页" },
-    { href: "/transfer", label: "转账" },
-    { href: "/chain-balance", label: "链切换" },
-    { href: "/transactions", label: "交易历史" },
-  ];
 
   return (
     <nav className="border-b border-zinc-200 bg-white/70 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/70">
