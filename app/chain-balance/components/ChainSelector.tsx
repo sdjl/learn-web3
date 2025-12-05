@@ -11,10 +11,7 @@
 // ============================================================
 
 import { useAccount, useSwitchChain } from "wagmi";
-import { mainnet, sepolia, Chain } from "wagmi/chains";
-
-// 支持的链列表
-const supportedChains: Chain[] = [mainnet, sepolia];
+import { supportedChains } from "@/lib/config/chains";
 
 interface ChainSelectorProps {
   // 当前选择的链 ID

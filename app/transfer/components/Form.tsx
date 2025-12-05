@@ -17,7 +17,6 @@ import {
   useSendTransaction,
   useWaitForTransactionReceipt,
 } from "wagmi";
-import { sepolia } from "wagmi/chains";
 import { parseEther, formatEther, isAddress } from "viem";
 
 export function Form() {
@@ -48,8 +47,8 @@ export function Form() {
       hash,
     });
 
-  // 检查是否在正确的网络上
-  const isWrongNetwork = chain?.id !== sepolia.id;
+  // 检查是否已连接网络
+  const isNoNetwork = !chain;
 
   // 处理转账
   const handleTransfer = async (e: React.FormEvent) => {
@@ -79,8 +78,8 @@ export function Form() {
     }
 
     // 检查网络
-    if (chain?.id !== sepolia.id) {
-      alert(`请切换到 Sepolia 网络。当前网络：${chain?.name || "未连接"}`);
+    if (!chain) {
+      alert("请先连接钱包并选择网络");
       return;
     }
 
@@ -98,6 +97,17 @@ export function Form() {
   return (
     <section className="rounded-3xl border border-white/20 bg-white/70 p-6 shadow-xl backdrop-blur dark:border-white/10 dark:bg-white/5">
       <h2 className="mb-6 text-lg font-semibold">转账信息</h2>
+
+      {/* 当前网络提示 */}
+      {chain && (
+        <div className="mb-6 rounded-lg bg-sky-50 p-3 text-sm text-zinc-700 dark:bg-sky-900/20 dark:text-zinc-300">
+          你正在{" "}
+          <span className="font-bold text-sky-600 dark:text-sky-400">
+            {chain.name}
+          </span>{" "}
+          网络上转账
+        </div>
+      )}
 
       <form onSubmit={handleTransfer} className="space-y-6">
         {/* 接收地址输入 */}
@@ -128,7 +138,8 @@ export function Form() {
             htmlFor="amount"
             className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
           >
-            转账金额 (Sepolia ETH)
+            转账金额 (
+            {chain?.nativeCurrency?.symbol || balanceData?.symbol || "ETH"})
           </label>
           <input
             id="amount"
@@ -173,14 +184,16 @@ export function Form() {
               <div className="rounded-lg bg-green-50 p-4 text-sm text-green-600 dark:bg-green-900/20 dark:text-green-400">
                 <p className="font-semibold">交易成功！</p>
                 <p className="mt-1 font-mono text-xs">交易哈希: {hash}</p>
-                <a
-                  href={`https://sepolia.etherscan.io/tx/${hash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 inline-block text-xs underline"
-                >
-                  在 Sepolia Etherscan 上查看
-                </a>
+                {chain?.blockExplorers?.default && (
+                  <a
+                    href={`${chain.blockExplorers.default.url}/tx/${hash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-block text-xs underline"
+                  >
+                    在 {chain.blockExplorers.default.name} 上查看
+                  </a>
+                )}
               </div>
             )}
           </div>
@@ -192,7 +205,7 @@ export function Form() {
           disabled={
             isPending ||
             isConfirming ||
-            isWrongNetwork ||
+            isNoNetwork ||
             !toAddress ||
             !amount ||
             !isAddress(toAddress)
@@ -203,8 +216,8 @@ export function Form() {
             ? "等待钱包确认..."
             : isConfirming
             ? "确认中..."
-            : isWrongNetwork
-            ? "请切换到 Sepolia 网络"
+            : isNoNetwork
+            ? "请先连接钱包"
             : "发送交易"}
         </button>
       </form>

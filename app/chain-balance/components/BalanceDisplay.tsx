@@ -10,11 +10,8 @@
 // ============================================================
 
 import { useAccount, useBalance } from "wagmi";
-import { mainnet, sepolia, Chain } from "wagmi/chains";
 import { formatEther } from "viem";
-
-// 支持的链列表
-const supportedChains: Chain[] = [mainnet, sepolia];
+import { supportedChains } from "@/lib/config/chains";
 
 interface BalanceDisplayProps {
   // 当前选择的链 ID

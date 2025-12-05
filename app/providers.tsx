@@ -5,7 +5,8 @@ import { ReactNode } from "react";
 import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider } from "wagmi";
-import { mainnet, sepolia } from "wagmi/chains";
+import { supportedChains } from "@/lib/config/chains";
+import type { Chain } from "wagmi/chains";
 
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
 
@@ -18,7 +19,7 @@ if (!projectId) {
 const wagmiConfig = getDefaultConfig({
   appName: "Learn Wagmi",
   projectId,
-  chains: [mainnet, sepolia],
+  chains: supportedChains as [Chain, ...Chain[]],
   ssr: true,
 });
 

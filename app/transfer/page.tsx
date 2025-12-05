@@ -1,7 +1,7 @@
 "use client";
 
 // ============================================================
-// 转账页面：在 Sepolia 网络上发送测试币
+// 转账页面：在指定网络上发送代币
 // ============================================================
 // 作用：
 // - 整合所有转账相关的功能组件
@@ -10,32 +10,34 @@
 // ============================================================
 
 import { useAccount } from "wagmi";
-import { sepolia } from "wagmi/chains";
 import { Header } from "@/components/layout/Header";
 import { WalletConnection } from "@/components/wallet/WalletConnection";
 import { Form } from "./components/Form";
 import { EmptyState } from "./components/EmptyState";
 
 export default function TransferPage() {
-  // 获取钱包连接状态
-  const { isConnected } = useAccount();
+  // 获取钱包连接状态和当前链信息
+  const { isConnected, chain } = useAccount();
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-10 px-6 py-16 text-zinc-900 dark:text-zinc-100">
       {/* 页面标题区域组件 - 显示页面标题和描述信息 */}
       <Header
-        label="Sepolia 测试币转账"
-        title="发送测试币"
-        description="在 Sepolia 测试网络上发送测试币（Sepolia ETH）到指定地址"
+        label="转账"
+        title="发送代币"
+        description={
+          chain
+            ? `在当前网络（${chain.name}）上发送代币到指定地址`
+            : "连接钱包后，在当前网络上发送代币到指定地址"
+        }
       />
 
-      {/* 钱包连接组件 - 处理钱包连接，显示网络和余额信息，检查是否在 Sepolia 网络 */}
+      {/* 钱包连接组件 - 处理钱包连接，显示网络和余额信息 */}
       <WalletConnection
         title="连接钱包"
-        description="请先连接钱包并切换到 Sepolia 网络"
+        description="请先连接钱包"
         showFullInfo={false}
         showInfoOnlyWhenConnected={true}
-        requiredChain={sepolia}
       />
 
       {/* 转账表单组件 - 仅在钱包已连接时显示，处理转账输入和交易提交 */}
