@@ -7,20 +7,27 @@
 // - 统一的页面头部样式
 // ============================================================
 
-export function Header() {
+interface HeaderProps {
+  /** 页面标签文本（显示在标题上方的小标签） */
+  label: string;
+  /** 主标题文本 */
+  title: string;
+  /** 页面描述文本 */
+  description: string;
+}
+
+export function Header({ label, title, description }: HeaderProps) {
   return (
     <header className="space-y-4 text-center sm:text-left">
       {/* 页面标签 */}
       <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sky-500">
-        learn web3
+        {label}
       </p>
       {/* 主标题 */}
-      <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-        RainbowKit + Wagmi 上手指南
-      </h1>
+      <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">{title}</h1>
       {/* 页面描述 */}
       <p className="text-base text-zinc-500 dark:text-zinc-400">
-        点击下方连接按钮，选择钱包，即可体验钱包连接、链信息与余额查询。
+        {description}
       </p>
     </header>
   );

@@ -11,7 +11,7 @@
 
 import { useAccount } from "wagmi";
 import { useState, useMemo } from "react";
-import { Header } from "./components/Header";
+import { Header } from "@/components/layout/Header";
 import { ChainSelector } from "./components/ChainSelector";
 import { BalanceDisplay } from "./components/BalanceDisplay";
 import { EmptyState } from "./components/EmptyState";
@@ -32,7 +32,11 @@ export default function ChainBalancePage() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-10 px-6 py-16 text-zinc-900 dark:text-zinc-100">
       {/* 页面标题区域组件 - 显示页面标题和描述信息 */}
-      <Header />
+      <Header
+        label="链切换与余额查询"
+        title="切换链并查询余额"
+        description="在不同链之间切换，并查询不同链的账户余额"
+      />
 
       {/* 链切换和余额查询区域 - 仅在钱包已连接时显示 */}
       {isConnected && address && (

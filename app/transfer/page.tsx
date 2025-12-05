@@ -11,7 +11,7 @@
 
 import { useAccount } from "wagmi";
 import { sepolia } from "wagmi/chains";
-import { Header } from "./components/Header";
+import { Header } from "@/components/layout/Header";
 import { WalletConnection } from "@/components/wallet/WalletConnection";
 import { Form } from "./components/Form";
 import { EmptyState } from "./components/EmptyState";
@@ -23,7 +23,11 @@ export default function TransferPage() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-10 px-6 py-16 text-zinc-900 dark:text-zinc-100">
       {/* 页面标题区域组件 - 显示页面标题和描述信息 */}
-      <Header />
+      <Header
+        label="Sepolia 测试币转账"
+        title="发送测试币"
+        description="在 Sepolia 测试网络上发送测试币（Sepolia ETH）到指定地址"
+      />
 
       {/* 钱包连接组件 - 处理钱包连接，显示网络和余额信息，检查是否在 Sepolia 网络 */}
       <WalletConnection

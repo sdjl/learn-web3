@@ -10,7 +10,7 @@
 // ============================================================
 
 // 导入各个功能组件
-import { Header } from "./components/Header";
+import { Header } from "@/components/layout/Header";
 import { WalletConnection } from "@/components/wallet/WalletConnection";
 import { WalletActions } from "./components/WalletActions";
 
@@ -18,7 +18,11 @@ export default function Home() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-10 px-6 py-16 text-zinc-900 dark:text-zinc-100">
       {/* 页面标题区域组件 - 显示页面标题和描述信息 */}
-      <Header />
+      <Header
+        label="learn web3"
+        title="RainbowKit + Wagmi 上手指南"
+        description="点击下方连接按钮，选择钱包，即可体验钱包连接、链信息与余额查询。"
+      />
 
       {/* 钱包连接组件 - 处理钱包连接和断开，显示连接状态、地址、网络和余额信息 */}
       <WalletConnection />
