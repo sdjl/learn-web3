@@ -1,5 +1,7 @@
+"use server";
+
 // ============================================================
-// Etherscan API 路由：安全地调用 Etherscan API
+// 交易历史 Server Action：安全地调用 Etherscan API
 // ============================================================
 // 作用：
 // - 在服务端调用 Etherscan API，避免暴露 API Key
@@ -7,32 +9,29 @@
 // - 支持不同链的 Etherscan API
 // ============================================================
 
-import { NextRequest, NextResponse } from "next/server";
+import { supportedChains } from "@/lib/config/chains";
+import { ETHERSCAN_API_V2_URL } from "@/lib/config/etherscan";
+import type { EtherscanResponse } from "./types";
 
-// Etherscan API V2 统一端点
-const ETHERSCAN_API_V2_URL = "https://api.etherscan.io/v2/api";
-
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const address = searchParams.get("address");
-  const chainId = searchParams.get("chainId");
-
+export async function getTransactions(
+  address: string,
+  chainId: number
+): Promise<EtherscanResponse> {
   if (!address) {
-    return NextResponse.json({ error: "地址参数是必需的" }, { status: 400 });
+    throw new Error("地址参数是必需的");
   }
 
   if (!chainId) {
-    return NextResponse.json({ error: "链 ID 参数是必需的" }, { status: 400 });
+    throw new Error("链 ID 参数是必需的");
+  }
+
+  // 从配置中获取支持的链 ID 列表
+  const supportedChainIds = supportedChains.map((chain) => chain.id);
+  if (!supportedChainIds.includes(chainId)) {
+    throw new Error("不支持的链 ID");
   }
 
   const apiKey = process.env.ETHERSCAN_API_KEY;
-  const chainIdNum = Number(chainId);
-
-  // 支持的链 ID 列表
-  const supportedChainIds = [1, 11155111]; // Ethereum Mainnet, Sepolia Testnet
-  if (!supportedChainIds.includes(chainIdNum)) {
-    return NextResponse.json({ error: "不支持的链 ID" }, { status: 400 });
-  }
 
   try {
     // 构建 Etherscan API V2 URL
@@ -65,39 +64,33 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json();
 
-    // 记录完整的响应以便调试
-    console.log("Etherscan API 响应:", JSON.stringify(data, null, 2));
-
     // 处理 Etherscan API 的错误响应
     if (data.status === "0") {
       // "No transactions found" 是正常情况，返回空数组
       if (data.message === "No transactions found") {
-        return NextResponse.json({
+        return {
           status: "1",
           message: "OK",
           result: [],
-        });
+        };
       }
-      // 其他错误情况，返回详细的错误信息
+      // 其他错误情况，抛出错误
       console.error("Etherscan API 错误响应:", data);
-      return NextResponse.json(
-        { error: data.message || data.result || "获取交易数据失败" },
-        { status: 500 }
-      );
+      throw new Error(data.message || data.result || "获取交易数据失败");
     }
 
     // 确保 result 是数组
     const result = Array.isArray(data.result) ? data.result : [];
 
-    return NextResponse.json({
+    return {
       status: data.status,
       message: data.message,
       result,
-    });
+    };
   } catch (error) {
     console.error("Etherscan API 错误:", error);
     const errorMessage =
       error instanceof Error ? error.message : "获取交易数据时发生错误";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    throw new Error(errorMessage);
   }
 }

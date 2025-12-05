@@ -15,8 +15,8 @@ import { TransactionList } from "./components/TransactionList";
 import { EmptyState } from "./components/EmptyState";
 
 export default function TransactionsPage() {
-  // 获取钱包连接状态
-  const { isConnected } = useAccount();
+  // 获取钱包连接状态和当前链信息
+  const { isConnected, chain } = useAccount();
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-10 px-6 py-16 text-zinc-900 dark:text-zinc-100">
@@ -24,7 +24,11 @@ export default function TransactionsPage() {
       <Header
         label="交易历史"
         title="查看交易记录"
-        description="查看你的钱包地址在区块链上的所有交易历史记录"
+        description={
+          isConnected && chain
+            ? `查看你的钱包地址在 ${chain.name} 上的所有交易历史记录`
+            : "查看你的钱包地址在区块链上的所有交易历史记录"
+        }
       />
 
       {/* 交易列表组件 - 仅在钱包已连接时显示，展示交易历史数据 */}

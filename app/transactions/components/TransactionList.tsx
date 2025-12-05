@@ -4,7 +4,7 @@
 // 交易列表组件：显示用户的交易历史记录
 // ============================================================
 // 作用：
-// - 从 Etherscan API 获取交易数据
+// - 通过 Server Action 获取交易数据
 // - 显示交易列表，包括交易哈希、时间、金额等信息
 // - 提供加载状态和错误处理
 // - 支持刷新交易列表
@@ -14,25 +14,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useAccount } from "wagmi";
 import { formatEther } from "viem";
 import { useState } from "react";
-
-interface Transaction {
-  blockNumber: string;
-  timeStamp: string;
-  hash: string;
-  from: string;
-  to: string;
-  value: string;
-  gasUsed: string;
-  gasPrice: string;
-  isError: string;
-  txreceipt_status: string;
-}
-
-interface EtherscanResponse {
-  status: string;
-  message: string;
-  result: Transaction[];
-}
+import { getTransactions } from "../actions";
+import type { Transaction, EtherscanResponse } from "../types";
 
 export function TransactionList() {
   const { address, chain } = useAccount();
@@ -46,16 +29,8 @@ export function TransactionList() {
         throw new Error("地址或链 ID 缺失");
       }
 
-      const response = await fetch(
-        `/api/etherscan?address=${address}&chainId=${chain.id}`
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "获取交易数据失败");
-      }
-
-      return response.json();
+      // 使用 Server Action 获取交易数据
+      return await getTransactions(address, chain.id);
     },
     enabled: Boolean(address && chain?.id),
     refetchOnWindowFocus: false,
