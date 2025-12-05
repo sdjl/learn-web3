@@ -13,6 +13,7 @@ export function Navigation() {
   const navItems = [
     { href: "/", label: "首页" },
     { href: "/transfer", label: "转账" },
+    { href: "/chain-balance", label: "链切换" },
   ];
 
   return (

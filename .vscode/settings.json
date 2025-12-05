@@ -1,8 +1,19 @@
 {
   "files.exclude": {
-    "**/node_modules": true
+    "**/node_modules": true,
+    "**/.next": true
   },
   "search.exclude": {
-    "**/node_modules": true
+    "**/node_modules": true,
+    "**/.next": true
+  },
+  "[markdown]": {
+    "editor.formatOnSave": false
+  },
+  "files.associations": {
+    "*.mdc": "markdown"
+  },
+  "[*.mdc]": {
+    "editor.formatOnSave": false
   }
 }
