@@ -14,7 +14,7 @@ import { useState, useMemo } from "react";
 import { Header } from "@/components/layout/Header";
 import { ChainSelector } from "./components/ChainSelector";
 import { BalanceDisplay } from "./components/BalanceDisplay";
-import { EmptyState } from "./components/EmptyState";
+import { WalletNotConnected } from "@/components/wallet/WalletNotConnected";
 
 export default function ChainBalancePage() {
   // 获取钱包连接状态和当前链信息
@@ -55,7 +55,9 @@ export default function ChainBalancePage() {
       )}
 
       {/* 空状态组件 - 仅在钱包未连接时显示，提示用户连接钱包 */}
-      {!isConnected && <EmptyState />}
+      {!isConnected && (
+        <WalletNotConnected message="请先连接钱包以使用链切换和余额查询功能" />
+      )}
     </main>
   );
 }

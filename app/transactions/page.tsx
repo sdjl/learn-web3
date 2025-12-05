@@ -12,7 +12,7 @@
 import { useAccount } from "wagmi";
 import { Header } from "@/components/layout/Header";
 import { TransactionList } from "./components/TransactionList";
-import { EmptyState } from "./components/EmptyState";
+import { WalletNotConnected } from "@/components/wallet/WalletNotConnected";
 
 export default function TransactionsPage() {
   // 获取钱包连接状态和当前链信息
@@ -35,7 +35,9 @@ export default function TransactionsPage() {
       {isConnected && <TransactionList />}
 
       {/* 空状态组件 - 仅在钱包未连接时显示，提示用户连接钱包 */}
-      {!isConnected && <EmptyState />}
+      {!isConnected && (
+        <WalletNotConnected message="请先连接钱包以查看交易历史记录" />
+      )}
     </main>
   );
 }

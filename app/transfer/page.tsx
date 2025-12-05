@@ -13,7 +13,7 @@ import { useAccount } from "wagmi";
 import { Header } from "@/components/layout/Header";
 import { WalletConnection } from "@/components/wallet/WalletConnection";
 import { Form } from "./components/Form";
-import { EmptyState } from "./components/EmptyState";
+import { WalletNotConnected } from "@/components/wallet/WalletNotConnected";
 
 export default function TransferPage() {
   // 获取钱包连接状态和当前链信息
@@ -44,7 +44,9 @@ export default function TransferPage() {
       {isConnected && <Form />}
 
       {/* 空状态组件 - 仅在钱包未连接时显示，提示用户连接钱包 */}
-      {!isConnected && <EmptyState />}
+      {!isConnected && (
+        <WalletNotConnected message="请先连接钱包以使用转账功能" />
+      )}
     </main>
   );
 }
