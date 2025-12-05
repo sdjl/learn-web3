@@ -15,5 +15,6 @@
   },
   "[*.mdc]": {
     "editor.formatOnSave": false
-  }
+  },
+  "cSpell.words": ["chainid", "txreceipt"]
 }

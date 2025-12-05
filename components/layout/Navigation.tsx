@@ -14,6 +14,7 @@ export function Navigation() {
     { href: "/", label: "首页" },
     { href: "/transfer", label: "转账" },
     { href: "/chain-balance", label: "链切换" },
+    { href: "/transactions", label: "交易历史" },
   ];
 
   return (
