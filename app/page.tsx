@@ -39,7 +39,7 @@ export default function Home() {
       {/* 页面标题区域组件 - 显示页面标题和描述信息 */}
       <Header
         label="learn web3"
-        title="RainbowKit + Wagmi 上手指南"
+        title="一边写代码一边学习 Web3"
         description="点击下方连接按钮，选择钱包，即可体验钱包连接、链信息与余额查询。"
       />
 
