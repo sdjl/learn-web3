@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "check": "eslint"
+    "check": "eslint && tsc --noEmit"
   },
   "dependencies": {
     "@rainbow-me/rainbowkit": "^2.2.9",

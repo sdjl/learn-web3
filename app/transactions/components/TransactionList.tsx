@@ -15,14 +15,16 @@ import { useAccount } from "wagmi";
 import { formatEther } from "viem";
 import { useState } from "react";
 import { getTransactions } from "../actions";
-import type { Transaction, EtherscanResponse } from "../types";
+import type { Transaction, EtherscanApiResponse } from "@/lib/config/etherscan";
 
 export function TransactionList() {
   const { address, chain } = useAccount();
   const [refreshKey, setRefreshKey] = useState(0);
 
   // 获取交易数据
-  const { data, isLoading, error, refetch } = useQuery<EtherscanResponse>({
+  const { data, isLoading, error, refetch } = useQuery<
+    EtherscanApiResponse<Transaction[]>
+  >({
     queryKey: ["transactions", address, chain?.id, refreshKey],
     queryFn: async () => {
       if (!address || !chain?.id) {
