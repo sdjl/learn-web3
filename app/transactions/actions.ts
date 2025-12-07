@@ -10,8 +10,11 @@
 // ============================================================
 
 import { supportedChains } from "@/lib/config/chains";
-import { getTransactions as getEtherscanTransactions } from "@/lib/config/etherscan";
-import type { EtherscanApiResponse, Transaction } from "@/lib/config/etherscan";
+import { getTransactions as getEtherscanTransactions } from "@/lib/services/etherscan";
+import type {
+  EtherscanApiResponse,
+  Transaction,
+} from "@/lib/services/etherscan";
 
 /**
  * 获取指定地址的交易历史记录

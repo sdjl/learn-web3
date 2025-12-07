@@ -15,7 +15,10 @@ import { useAccount } from "wagmi";
 import { formatEther } from "viem";
 import { useState } from "react";
 import { getTransactions } from "../actions";
-import type { Transaction, EtherscanApiResponse } from "@/lib/config/etherscan";
+import type {
+  Transaction,
+  EtherscanApiResponse,
+} from "@/lib/services/etherscan";
 
 export function TransactionList() {
   const { address, chain } = useAccount();
