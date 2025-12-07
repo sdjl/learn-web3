@@ -15,7 +15,7 @@ import { Header } from "@/components/layout/Header";
 import { WalletNotConnected } from "@/components/wallet/WalletNotConnected";
 import { Form } from "./components/Form";
 import { ContractInfoDisplay } from "./components/ContractInfo";
-import type { ContractInfo } from "./types";
+import type { ContractInfo, ContractQueryError } from "./types";
 
 export default function ContractQueryPage() {
   // 获取钱包连接状态
@@ -23,11 +23,11 @@ export default function ContractQueryPage() {
 
   // 查询状态
   const [contractInfo, setContractInfo] = useState<
-    ContractInfo | { error: string } | null
+    ContractInfo | ContractQueryError | null
   >(null);
 
   // 处理查询结果
-  const handleQuery = (result: ContractInfo | { error: string }) => {
+  const handleQuery = (result: ContractInfo | ContractQueryError) => {
     setContractInfo(result);
   };
 

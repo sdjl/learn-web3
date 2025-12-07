@@ -16,12 +16,7 @@ import { supportedChains } from "@/lib/config/chains";
 import { USDT_CONTRACT_ADDRESS } from "@/lib/config/contracts";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
-import type { ContractInfo } from "../types";
-
-interface FormProps {
-  /** 查询结果回调 */
-  onQuery: (contractInfo: ContractInfo | { error: string }) => void;
-}
+import type { FormProps } from "../types";
 
 export function Form({ onQuery }: FormProps) {
   // 表单状态

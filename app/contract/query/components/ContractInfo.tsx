@@ -7,13 +7,8 @@
 // - 提供友好的信息展示界面
 // ============================================================
 
-import type { ContractInfo } from "../types";
+import type { ContractInfoProps } from "../types";
 import { useAccount } from "wagmi";
-
-interface ContractInfoProps {
-  /** 合约信息 */
-  contractInfo: ContractInfo;
-}
 
 export function ContractInfoDisplay({ contractInfo }: ContractInfoProps) {
   const { chain } = useAccount();
@@ -132,39 +127,6 @@ export function ContractInfoDisplay({ contractInfo }: ContractInfoProps) {
               {contractInfo.sourceCode}
             </pre>
           </div>
-        </div>
-      )}
-
-      {/* 如果没有源代码但有字节码 */}
-      {contractInfo.isContract && !contractInfo.sourceCode && (
-        <div className="mt-6 rounded-lg bg-muted p-4 text-sm text-muted-foreground">
-          <p className="font-semibold text-foreground">注意</p>
-          <p className="mt-1">未找到合约源代码。这可能是因为：</p>
-          <ul className="mt-2 list-disc pl-5">
-            <li>
-              <strong>需要 Etherscan API Key</strong>：Etherscan API V2 需要 API
-              Key 才能获取源代码。请在项目根目录的{" "}
-              <code className="bg-background px-1 rounded">.env</code>{" "}
-              文件中设置{" "}
-              <code className="bg-background px-1 rounded">
-                ETHERSCAN_API_KEY
-              </code>
-            </li>
-            <li>合约未在区块浏览器上验证</li>
-            <li>当前网络不支持源代码查询</li>
-          </ul>
-          <p className="mt-3">
-            获取 API Key：访问{" "}
-            <a
-              href="https://etherscan.io/apis"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline text-primary hover:text-primary/80"
-            >
-              Etherscan API 页面
-            </a>{" "}
-            注册并获取免费的 API Key。
-          </p>
         </div>
       )}
     </section>

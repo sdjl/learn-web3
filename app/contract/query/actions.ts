@@ -10,21 +10,16 @@
 // ============================================================
 
 import { createPublicClient, http, isAddress, formatEther } from "viem";
-import { mainnet, sepolia } from "viem/chains";
-import {
-  ETHERSCAN_API_V2_URL,
-  getEtherscanApiKey,
-} from "@/lib/config/etherscan";
-import type { ContractInfo, GetContractInfoParams } from "./types";
-
-/**
- * 获取 Etherscan API V2 URL
- * V2 API 使用统一的端点，通过 chainid 参数指定链
- */
-function getEtherscanApiUrl(): string {
-  // V2 API 使用统一的端点，通过 chainid 参数指定链
-  return ETHERSCAN_API_V2_URL;
-}
+import { callEtherscanApi } from "@/lib/services/etherscan";
+import { getChainById } from "@/lib/config/chains";
+import { parseSourceCode } from "./utils";
+import type {
+  ContractInfo,
+  GetContractInfoParams,
+  ContractSourceCodeResult,
+  ContractSourceCodeInfo,
+  ContractQueryError,
+} from "./types";
 
 /**
  * 从 Etherscan API 获取合约源代码
@@ -32,103 +27,29 @@ function getEtherscanApiUrl(): string {
 async function getContractSourceCode(
   address: string,
   chainId: number
-): Promise<{
-  sourceCode?: string;
-  contractName?: string;
-  compilerVersion?: string;
-  optimizationUsed?: boolean;
-}> {
+): Promise<ContractSourceCodeInfo> {
   try {
-    const apiKey = getEtherscanApiKey();
-    const apiUrl = getEtherscanApiUrl();
-
-    // 构建 URL，V2 API 需要 chainid 参数
-    let url = `${apiUrl}?chainid=${chainId}&module=contract&action=getsourcecode&address=${address}`;
-    if (apiKey) {
-      url += `&apikey=${apiKey}`;
-    }
-
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      console.error(
-        `Etherscan API 请求失败: ${response.status} ${response.statusText}`
-      );
-      return {};
-    }
-
-    const data = await response.json();
-
-    // 记录 API 响应以便调试
-    console.log("Etherscan API 响应:", {
-      status: data.status,
-      message: data.message,
-      hasResult: !!data.result,
-      resultLength: data.result?.length,
+    // 使用封装的 callEtherscanApi 函数调用 API
+    const response = await callEtherscanApi<ContractSourceCodeResult[]>({
+      chainid: chainId.toString(),
+      module: "contract",
+      action: "getsourcecode",
+      address: address,
     });
 
-    if (data.status === "1" && data.result && data.result.length > 0) {
-      const result = data.result[0];
-
-      // 记录结果信息
-      console.log("合约信息:", {
-        contractName: result.ContractName,
-        hasSourceCode: !!result.SourceCode,
-        sourceCodeLength: result.SourceCode?.length,
-        compilerVersion: result.CompilerVersion,
-      });
+    // 检查响应数据
+    if (
+      response.status === "1" &&
+      response.result &&
+      response.result.length > 0
+    ) {
+      const result = response.result[0];
 
       // 处理源代码：可能是字符串或 JSON 字符串（多文件合约）
-      let sourceCode: string | undefined;
-      if (result.SourceCode && result.SourceCode.trim() !== "") {
-        // 检查是否是 JSON 字符串（多文件合约）
-        if (
-          result.SourceCode.startsWith("{{") ||
-          result.SourceCode.startsWith("{")
-        ) {
-          try {
-            // 尝试解析 JSON
-            const parsed = JSON.parse(result.SourceCode);
-            // 如果是对象，提取所有文件内容
-            if (typeof parsed === "object" && parsed !== null) {
-              const sources: string[] = [];
-              const extractSources = (
-                obj: Record<string, unknown>,
-                prefix = ""
-              ): void => {
-                for (const [key, value] of Object.entries(obj)) {
-                  const fullPath = prefix ? `${prefix}/${key}` : key;
-                  if (
-                    value &&
-                    typeof value === "object" &&
-                    "content" in value &&
-                    typeof (value as { content: unknown }).content === "string"
-                  ) {
-                    sources.push(
-                      `// File: ${fullPath}\n${
-                        (value as { content: string }).content
-                      }`
-                    );
-                  } else if (typeof value === "string") {
-                    sources.push(`// File: ${fullPath}\n${value}`);
-                  } else if (value && typeof value === "object") {
-                    extractSources(value as Record<string, unknown>, fullPath);
-                  }
-                }
-              };
-              extractSources(parsed as Record<string, unknown>);
-              sourceCode = sources.join("\n\n");
-            } else {
-              sourceCode = result.SourceCode;
-            }
-          } catch {
-            // 解析失败，使用原始字符串
-            sourceCode = result.SourceCode;
-          }
-        } else {
-          sourceCode = result.SourceCode;
-        }
-      }
+      const sourceCode =
+        result.SourceCode && result.SourceCode.trim() !== ""
+          ? parseSourceCode(result.SourceCode)
+          : undefined;
 
       return {
         sourceCode,
@@ -141,38 +62,13 @@ async function getContractSourceCode(
             ? false
             : undefined,
       };
-    } else if (data.status === "0") {
-      // API 返回错误
-      const errorMessage = data.message || "未知错误";
-      const errorResult = data.result || "";
-
-      // 检查是否是 API Key 相关的错误
-      if (
-        errorMessage.includes("API Key") ||
-        errorResult.includes("API Key") ||
-        errorResult.includes("apikey")
-      ) {
-        console.warn(
-          "Etherscan API 需要 API Key。请在环境变量中设置 ETHERSCAN_API_KEY"
-        );
-      } else {
-        console.warn("Etherscan API 返回错误:", {
-          message: errorMessage,
-          result: errorResult,
-        });
-      }
-    } else {
-      // 其他情况
-      console.warn("Etherscan API 响应异常:", {
-        status: data.status,
-        message: data.message,
-        result: data.result,
-      });
     }
   } catch (error) {
+    // 获取源代码失败，记录错误并返回空对象
     console.error("获取合约源代码失败:", error);
   }
 
+  // 如果获取失败或合约未验证，返回空对象
   return {};
 }
 
@@ -181,15 +77,18 @@ async function getContractSourceCode(
  */
 export async function getContractInfo(
   params: GetContractInfoParams
-): Promise<ContractInfo | { error: string }> {
+): Promise<ContractInfo | ContractQueryError> {
   try {
     // 验证地址格式
     if (!isAddress(params.address)) {
       return { error: "无效的地址格式" };
     }
 
-    // 根据链 ID 选择链配置（目前只支持主网和 Sepolia）
-    const chain = params.chainId === 11155111 ? sepolia : mainnet;
+    // 根据链 ID 从支持的链列表中找到对应的链配置
+    const chain = getChainById(params.chainId);
+    if (!chain) {
+      return { error: `不支持的链 ID: ${params.chainId}` };
+    }
 
     // 创建公共客户端
     const client = createPublicClient({
@@ -198,7 +97,7 @@ export async function getContractInfo(
     });
 
     // 获取合约字节码
-    const bytecode = await client.getBytecode({
+    const bytecode = await client.getCode({
       address: params.address as `0x${string}`,
     });
 
@@ -213,7 +112,7 @@ export async function getContractInfo(
     // 格式化余额
     const balanceFormatted = formatEther(balance);
 
-    // 基础合约信息
+    // 创建基础合约信息
     const contractInfo: ContractInfo = {
       address: params.address,
       isContract,

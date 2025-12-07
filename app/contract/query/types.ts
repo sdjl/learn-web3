@@ -41,3 +41,46 @@ export interface GetContractInfoParams {
   /** RPC URL */
   rpcUrl: string;
 }
+
+/**
+ * 合约源代码响应接口（Etherscan API 返回的原始格式）
+ */
+export interface ContractSourceCodeResult {
+  SourceCode?: string;
+  ContractName?: string;
+  CompilerVersion?: string;
+  OptimizationUsed?: string;
+}
+
+/**
+ * 合约源代码信息（处理后的格式）
+ */
+export interface ContractSourceCodeInfo {
+  sourceCode?: string;
+  contractName?: string;
+  compilerVersion?: string;
+  optimizationUsed?: boolean;
+}
+
+/**
+ * 合约查询错误响应
+ */
+export interface ContractQueryError {
+  error: string;
+}
+
+/**
+ * 表单组件 Props
+ */
+export interface FormProps {
+  /** 查询结果回调 */
+  onQuery: (contractInfo: ContractInfo | ContractQueryError) => void;
+}
+
+/**
+ * 合约信息展示组件 Props
+ */
+export interface ContractInfoProps {
+  /** 合约信息 */
+  contractInfo: ContractInfo;
+}
