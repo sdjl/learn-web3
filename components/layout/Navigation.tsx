@@ -30,7 +30,7 @@ export function Navigation() {
   };
 
   return (
-    <nav className="border-b border-zinc-200 bg-white/70 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/70">
+    <nav className="border-b border-border bg-background/70 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <div className="flex gap-1">
           {navItems.map((item) => {
@@ -50,8 +50,8 @@ export function Navigation() {
                   <button
                     className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
                       isActive
-                        ? "bg-sky-500/10 text-sky-600 dark:text-sky-400"
-                        : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                        ? "bg-primary/10 text-primary"
+                        : "text-foreground hover:bg-muted"
                     }`}
                   >
                     {item.label}
@@ -59,7 +59,7 @@ export function Navigation() {
                   </button>
                   {hoveredItem === itemKey && (
                     <div className="absolute left-0 top-full z-50 pt-1 min-w-[180px]">
-                      <div className="rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
+                      <div className="rounded-lg border border-border bg-popover shadow-lg">
                         {item.children!.map((child) => {
                           const isChildActiveState = isChildActive(child.href);
                           return (
@@ -68,8 +68,8 @@ export function Navigation() {
                               href={child.href || "#"}
                               className={`block px-4 py-2 text-sm transition first:rounded-t-lg last:rounded-b-lg ${
                                 isChildActiveState
-                                  ? "bg-sky-500/10 text-sky-600 dark:text-sky-400"
-                                  : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                                  ? "bg-primary/10 text-primary"
+                                  : "text-foreground hover:bg-muted"
                               }`}
                             >
                               {child.label}
@@ -90,8 +90,8 @@ export function Navigation() {
                 href={item.href || "#"}
                 className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
                   isActive
-                    ? "bg-sky-500/10 text-sky-600 dark:text-sky-400"
-                    : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground hover:bg-muted"
                 }`}
               >
                 {item.label}
@@ -100,7 +100,7 @@ export function Navigation() {
           })}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.2em] text-sky-500">
+          <span className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
             Learn Wagmi
           </span>
         </div>

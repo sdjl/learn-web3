@@ -14,7 +14,7 @@ import { USDTTransactionList } from "./components/USDTTransactionList";
 
 export default function USDTMonitorPage() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-10 px-6 py-16 text-zinc-900 dark:text-zinc-100">
+    <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-10 px-6 py-16 text-foreground">
       {/* 页面标题区域组件 - 显示页面标题和描述信息 */}
       <Header
         label="USDT 监控"

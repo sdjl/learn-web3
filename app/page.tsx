@@ -35,7 +35,7 @@ export default function Home() {
   const { disconnect, isPending: isDisconnecting } = useDisconnect();
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-10 px-6 py-16 text-zinc-900 dark:text-zinc-100">
+    <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-10 px-6 py-16 text-foreground">
       {/* 页面标题区域组件 - 显示页面标题和描述信息 */}
       <Header
         label="learn web3"
@@ -52,7 +52,7 @@ export default function Home() {
           {/* 重新获取余额按钮 */}
           <button
             onClick={() => refetchBalance()} // 调用 refetchBalance 重新查询余额
-            className="rounded-full border border-sky-500/40 px-5 py-2 text-sm font-semibold text-sky-600 transition hover:bg-sky-500/10 dark:text-sky-300"
+            className="rounded-full border border-primary/40 px-5 py-2 text-sm font-semibold text-primary transition hover:bg-primary/10"
           >
             重新获取余额
           </button>
@@ -60,7 +60,7 @@ export default function Home() {
           <button
             onClick={() => disconnect()} // 调用 disconnect 断开钱包连接
             disabled={isDisconnecting} // 断开连接过程中禁用按钮，防止重复点击
-            className="rounded-full border border-red-500/40 px-5 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed dark:text-red-300"
+            className="rounded-full border border-destructive/40 px-5 py-2 text-sm font-semibold text-destructive transition hover:bg-destructive/10 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isDisconnecting ? "断开中..." : "断开连接"}
           </button>

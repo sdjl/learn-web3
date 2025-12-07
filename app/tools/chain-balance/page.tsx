@@ -30,7 +30,7 @@ export default function ChainBalancePage() {
   const effectiveSelectedChainId = selectedChainId ?? currentChainId;
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-10 px-6 py-16 text-zinc-900 dark:text-zinc-100">
+    <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-10 px-6 py-16 text-foreground">
       {/* 页面标题区域组件 - 显示页面标题和描述信息 */}
       <Header
         label="链切换与余额查询"
@@ -40,7 +40,7 @@ export default function ChainBalancePage() {
 
       {/* 链切换和余额查询区域 - 仅在钱包已连接时显示 */}
       {isConnected && address && (
-        <section className="rounded-3xl border border-white/20 bg-white/70 p-6 shadow-xl backdrop-blur dark:border-white/10 dark:bg-white/5">
+        <section className="rounded-3xl border border-border bg-card p-6 shadow-xl">
           {/* 链选择器组件 - 处理链的切换和选择 */}
           <ChainSelector
             selectedChainId={effectiveSelectedChainId}

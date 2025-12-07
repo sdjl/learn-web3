@@ -95,14 +95,14 @@ export function Form() {
   };
 
   return (
-    <section className="rounded-3xl border border-white/20 bg-white/70 p-6 shadow-xl backdrop-blur dark:border-white/10 dark:bg-white/5">
+    <section className="rounded-3xl border border-border bg-card p-6 shadow-xl">
       <h2 className="mb-6 text-lg font-semibold">转账信息</h2>
 
       {/* 当前网络提示 */}
       {chain && (
-        <div className="mb-6 rounded-lg bg-sky-50 p-3 text-sm text-zinc-700 dark:bg-sky-900/20 dark:text-zinc-300">
+        <div className="mb-6 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
           你正在{" "}
-          <span className="font-bold text-sky-600 dark:text-sky-400">
+          <span className="font-bold text-primary">
             {chain.name}
           </span>{" "}
           网络上转账
@@ -114,7 +114,7 @@ export function Form() {
         <div>
           <label
             htmlFor="toAddress"
-            className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            className="mb-2 block text-sm font-medium text-foreground"
           >
             接收地址
           </label>
@@ -125,10 +125,10 @@ export function Form() {
             onChange={(e) => setToAddress(e.target.value)}
             placeholder="0x..."
             required
-            className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 font-mono text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+            className="w-full rounded-lg border border-input bg-background px-4 py-3 font-mono text-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           />
           {toAddress && !isAddress(toAddress) && (
-            <p className="mt-1 text-sm text-red-500">无效的地址格式</p>
+            <p className="mt-1 text-sm text-destructive">无效的地址格式</p>
           )}
         </div>
 
@@ -136,7 +136,7 @@ export function Form() {
         <div>
           <label
             htmlFor="amount"
-            className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            className="mb-2 block text-sm font-medium text-foreground"
           >
             转账金额 (
             {chain?.nativeCurrency?.symbol || balanceData?.symbol || "ETH"})
@@ -150,19 +150,19 @@ export function Form() {
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.0"
             required
-            className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+            className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           />
           {balanceData &&
             balanceData.value &&
             amount &&
             parseFloat(amount) > parseFloat(formatEther(balanceData.value)) && (
-              <p className="mt-1 text-sm text-red-500">余额不足</p>
+              <p className="mt-1 text-sm text-destructive">余额不足</p>
             )}
         </div>
 
         {/* 错误提示 */}
         {error && (
-          <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+          <div className="rounded-lg bg-destructive/10 p-4 text-sm text-destructive">
             错误: {error.message}
           </div>
         )}
@@ -171,17 +171,17 @@ export function Form() {
         {hash && (
           <div className="space-y-2">
             {isPending && (
-              <div className="rounded-lg bg-yellow-50 p-4 text-sm text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400">
+              <div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
                 交易已提交，等待钱包确认...
               </div>
             )}
             {isConfirming && (
-              <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
+              <div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
                 交易已确认，等待区块确认...
               </div>
             )}
             {isConfirmed && (
-              <div className="rounded-lg bg-green-50 p-4 text-sm text-green-600 dark:bg-green-900/20 dark:text-green-400">
+              <div className="rounded-lg bg-muted p-4 text-sm text-foreground">
                 <p className="font-semibold">交易成功！</p>
                 <p className="mt-1 font-mono text-xs">交易哈希: {hash}</p>
                 {chain?.blockExplorers?.default && (
@@ -189,7 +189,7 @@ export function Form() {
                     href={`${chain.blockExplorers.default.url}/tx/${hash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-2 inline-block text-xs underline"
+                    className="mt-2 inline-block text-xs text-primary underline hover:text-primary/80"
                   >
                     在 {chain.blockExplorers.default.name} 上查看
                   </a>
@@ -210,7 +210,7 @@ export function Form() {
             !amount ||
             !isAddress(toAddress)
           }
-          className="w-full rounded-lg bg-sky-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isPending
             ? "等待钱包确认..."

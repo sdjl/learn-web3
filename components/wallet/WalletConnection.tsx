@@ -32,7 +32,7 @@ interface InfoRowProps {
 function InfoRow({ label, value, isMono }: InfoRowProps) {
   return (
     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-      <span className="text-zinc-500 dark:text-zinc-400">{label}</span>
+      <span className="text-muted-foreground">{label}</span>
       <span className={`text-base font-medium ${isMono ? "font-mono" : ""}`}>
         {value}
       </span>
@@ -77,14 +77,12 @@ export function WalletConnection({
   const shouldShowInfo = showInfoOnlyWhenConnected ? isConnected : true;
 
   return (
-    <section className="rounded-3xl border border-white/20 bg-white/70 p-6 shadow-xl backdrop-blur dark:border-white/10 dark:bg-white/5">
+    <section className="rounded-3xl border border-border bg-card p-6 shadow-xl">
       {/* 连接钱包按钮区域 */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold">{title}</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            {description}
-          </p>
+          <p className="text-sm text-muted-foreground">{description}</p>
         </div>
 
         {/* ConnectButton: RainbowKit 提供的连接钱包按钮
@@ -110,7 +108,7 @@ export function WalletConnection({
 
       {/* 连接信息显示区域 */}
       {shouldShowInfo && (
-        <div className="mt-6 grid gap-4 rounded-2xl border border-dashed border-zinc-200 p-4 text-sm dark:border-zinc-700">
+        <div className="mt-6 grid gap-4 rounded-2xl border border-dashed border-border bg-muted/50 p-4 text-sm">
           {showFullInfo ? (
             <>
               {/* 显示连接状态 */}
@@ -126,17 +124,15 @@ export function WalletConnection({
               />
               {/* 显示当前连接的区块链网络 */}
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <span className="text-zinc-500 dark:text-zinc-400">
-                  当前网络
-                </span>
+                <span className="text-muted-foreground">当前网络</span>
                 <span
                   className={`text-base font-medium ${
-                    isWrongNetwork ? "text-red-500" : ""
+                    isWrongNetwork ? "text-destructive" : ""
                   }`}
                 >
                   {chain?.name ?? "连接后显示"}
                   {isWrongNetwork && (
-                    <span className="text-red-500">
+                    <span className="text-destructive">
                       {" "}
                       (请切换到 {requiredChain?.name})
                     </span>
@@ -163,12 +159,10 @@ export function WalletConnection({
             <>
               {/* 简化模式：只显示网络和余额 */}
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <span className="text-zinc-500 dark:text-zinc-400">
-                  当前网络
-                </span>
+                <span className="text-muted-foreground">当前网络</span>
                 <span
                   className={`text-base font-medium ${
-                    isWrongNetwork ? "text-red-500" : "text-green-500"
+                    isWrongNetwork ? "text-destructive" : "text-primary"
                   }`}
                 >
                   {chain?.name || "未知"}

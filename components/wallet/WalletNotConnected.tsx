@@ -14,8 +14,8 @@ export function WalletNotConnected({
   message = "请先连接钱包",
 }: WalletNotConnectedProps) {
   return (
-    <div className="rounded-3xl border border-dashed border-zinc-300 bg-zinc-50 p-8 text-center dark:border-zinc-700 dark:bg-zinc-900/50">
-      <p className="text-zinc-500 dark:text-zinc-400">{message}</p>
+    <div className="rounded-3xl border border-dashed border-border bg-muted/50 p-8 text-center">
+      <p className="text-muted-foreground">{message}</p>
     </div>
   );
 }

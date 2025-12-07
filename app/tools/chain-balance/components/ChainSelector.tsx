@@ -66,10 +66,10 @@ export function ChainSelector({
               disabled={isSwitching}
               className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
                 isCurrentChain
-                  ? "border-green-500 bg-green-500/10 text-green-600 dark:text-green-400"
+                  ? "border-primary bg-primary/10 text-primary"
                   : isSelected
-                  ? "border-sky-500 bg-sky-500/10 text-sky-600 dark:text-sky-400"
-                  : "border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                  ? "border-primary/50 bg-primary/5 text-primary"
+                  : "border-border bg-background text-foreground hover:bg-muted"
               } ${isSwitching ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {supportedChain.name}
@@ -82,7 +82,7 @@ export function ChainSelector({
 
       {/* 切换链状态提示 */}
       {isSwitching && (
-        <div className="mb-4 rounded-lg bg-yellow-50 p-3 text-sm text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400">
+        <div className="mb-4 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
           正在切换链，请在钱包中确认...
         </div>
       )}

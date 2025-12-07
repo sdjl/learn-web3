@@ -20,13 +20,13 @@ export function Header({ label, title, description }: HeaderProps) {
   return (
     <header className="space-y-4 text-center sm:text-left">
       {/* 页面标签 */}
-      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sky-500">
+      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
         {label}
       </p>
       {/* 主标题 */}
       <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">{title}</h1>
       {/* 页面描述 */}
-      <p className="text-base text-zinc-500 dark:text-zinc-400">
+      <p className="text-base text-muted-foreground">
         {description}
       </p>
     </header>

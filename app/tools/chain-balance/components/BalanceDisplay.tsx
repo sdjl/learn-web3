@@ -59,40 +59,40 @@ export function BalanceDisplay({ selectedChainId }: BalanceDisplayProps) {
   return (
     <div>
       {/* 当前链余额显示 */}
-      <div className="mb-4 rounded-2xl border border-dashed border-zinc-200 bg-zinc-50/50 p-4 dark:border-zinc-700 dark:bg-zinc-900/50">
+      <div className="mb-4 rounded-2xl border border-dashed border-border bg-muted/50 p-4">
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+          <span className="text-sm font-medium text-muted-foreground">
             当前链余额 ({chain?.name || "未知"})
           </span>
         </div>
-        <div className="text-2xl font-bold">
+        <div className="text-2xl font-bold text-foreground">
           {isCurrentBalanceLoading ? (
-            <span className="text-zinc-400">查询中...</span>
+            <span className="text-muted-foreground">查询中...</span>
           ) : currentBalanceData?.value ? (
             `${formatEther(currentBalanceData.value)} ${
               currentBalanceData.symbol || ""
             }`
           ) : (
-            <span className="text-zinc-400">--</span>
+            <span className="text-muted-foreground">--</span>
           )}
         </div>
       </div>
 
       {/* 选中链余额显示（如果选择了不同的链） */}
       {selectedChainId && selectedChainId !== chain?.id && (
-        <div className="mb-4 rounded-2xl border border-dashed border-sky-200 bg-sky-50/50 p-4 dark:border-sky-800 dark:bg-sky-900/20">
+        <div className="mb-4 rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-4">
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm font-medium text-sky-600 dark:text-sky-400">
+            <span className="text-sm font-medium text-primary">
               选中链余额 (
               {supportedChains.find((c) => c.id === selectedChainId)?.name ||
                 "未知"}
               )
             </span>
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">
+            <span className="text-xs text-muted-foreground">
               (需要切换链才能查询)
             </span>
           </div>
-          <div className="text-2xl font-bold text-sky-600 dark:text-sky-400">
+          <div className="text-2xl font-bold text-primary">
             {isSelectedBalanceLoading ? (
               <span>查询中...</span>
             ) : selectedBalanceData?.value ? (
@@ -113,7 +113,7 @@ export function BalanceDisplay({ selectedChainId }: BalanceDisplayProps) {
           disabled={
             isCurrentBalanceLoading || isSelectedBalanceLoading || !isConnected
           }
-          className="rounded-full border border-sky-500/40 bg-sky-500/10 px-5 py-2 text-sm font-semibold text-sky-600 transition hover:bg-sky-500/20 disabled:opacity-50 disabled:cursor-not-allowed dark:text-sky-300"
+          className="rounded-full border border-primary/40 bg-primary/10 px-5 py-2 text-sm font-semibold text-primary transition hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isCurrentBalanceLoading || isSelectedBalanceLoading
             ? "刷新中..."

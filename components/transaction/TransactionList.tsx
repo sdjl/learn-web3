@@ -67,9 +67,9 @@ export function TransactionList({
 }: TransactionListProps) {
   if (isLoading) {
     return (
-      <div className="rounded-3xl border border-white/20 bg-white/70 p-6 shadow-xl backdrop-blur dark:border-white/10 dark:bg-white/5">
+      <div className="rounded-3xl border border-border bg-card p-6 shadow-xl">
         <div className="flex items-center justify-center py-12">
-          <p className="text-zinc-500 dark:text-zinc-400">{loadingText}</p>
+          <p className="text-muted-foreground">{loadingText}</p>
         </div>
       </div>
     );
@@ -77,15 +77,15 @@ export function TransactionList({
 
   if (error) {
     return (
-      <div className="rounded-3xl border border-white/20 bg-white/70 p-6 shadow-xl backdrop-blur dark:border-white/10 dark:bg-white/5">
+      <div className="rounded-3xl border border-border bg-card p-6 shadow-xl">
         <div className="flex flex-col items-center justify-center gap-4 py-12">
-          <p className="text-red-500 dark:text-red-400">
+          <p className="text-destructive">
             {errorText || error?.message || "获取交易数据失败"}
           </p>
           {onRefresh && (
             <button
               onClick={onRefresh}
-              className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-600"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
             >
               重试
             </button>
@@ -97,9 +97,9 @@ export function TransactionList({
 
   if (transactions.length === 0) {
     return (
-      <div className="rounded-3xl border border-white/20 bg-white/70 p-6 shadow-xl backdrop-blur dark:border-white/10 dark:bg-white/5">
+      <div className="rounded-3xl border border-border bg-card p-6 shadow-xl">
         <div className="flex items-center justify-center py-12">
-          <p className="text-zinc-500 dark:text-zinc-400">{emptyText}</p>
+          <p className="text-muted-foreground">{emptyText}</p>
         </div>
       </div>
     );
@@ -112,14 +112,14 @@ export function TransactionList({
   );
 
   return (
-    <div className="rounded-3xl border border-white/20 bg-white/70 p-6 shadow-xl backdrop-blur dark:border-white/10 dark:bg-white/5">
+    <div className="rounded-3xl border border-border bg-card p-6 shadow-xl">
       {/* 标题和刷新按钮 */}
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-lg font-semibold">{title}</h2>
         {onRefresh && (
           <button
             onClick={onRefresh}
-            className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-600"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
           >
             刷新
           </button>

@@ -1,0 +1,509 @@
+# 公共库文件文档
+
+本文档介绍 `lib` 目录下的所有公共库文件和函数，包括配置文件和服务工具库。
+
+## 目录结构
+
+```
+lib/
+├── config/          # 配置文件
+│   ├── chains.ts           # 链配置
+│   ├── contracts.ts        # 合约地址配置
+│   ├── etherscan.ts        # Etherscan API 配置
+│   └── navigation.ts       # 导航配置
+└── services/        # 服务工具库
+    ├── etherscan.ts        # Etherscan API 工具库
+    └── usdt.ts            # USDT 服务工具库
+```
+
+---
+
+## Config 配置文件
+
+### chains.ts
+
+**文件路径**: `lib/config/chains.ts`
+
+**作用**: 
+- 集中管理应用支持的区块链网络
+- 方便统一修改和维护
+- 确保所有页面使用相同的链配置
+
+**导出内容**:
+
+```typescript
+/**
+ * 应用支持的链列表
+ * 修改此数组即可添加或移除支持的链
+ */
+export const supportedChains: Chain[] = [mainnet, sepolia];
+```
+
+**使用示例**:
+
+```typescript
+import { supportedChains } from "@/lib/config/chains";
+
+// 在 providers 中使用
+const wagmiConfig = getDefaultConfig({
+  appName: "Learn Wagmi",
+  projectId,
+  chains: supportedChains as [Chain, ...Chain[]],
+  ssr: true,
+});
+```
+
+**注意事项**:
+- 目前只支持主网（mainnet）和 Sepolia 测试网
+- 类型为 `Chain[]`，来自 `wagmi/chains`
+
+---
+
+### contracts.ts
+
+**文件路径**: `lib/config/contracts.ts`
+
+**作用**: 
+- 集中管理所有智能合约地址
+- 方便统一修改和维护
+- 支持多链部署的合约地址
+
+**导出内容**:
+
+```typescript
+/**
+ * USDT 合约地址（以太坊主网）
+ * Tether USD (USDT) 在以太坊主网上的合约地址
+ */
+export const USDT_CONTRACT_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+```
+
+**使用示例**:
+
+```typescript
+import { USDT_CONTRACT_ADDRESS } from "@/lib/config/contracts";
+
+// 使用 USDT 合约地址
+const contractAddress = USDT_CONTRACT_ADDRESS;
+```
+
+**注意事项**:
+- 目前只定义了以太坊主网上的 USDT 合约地址
+- 如需支持其他链，可以扩展为对象结构，按链 ID 组织
+
+---
+
+### etherscan.ts
+
+**文件路径**: `lib/config/etherscan.ts`
+
+**作用**: 
+- 集中管理 Etherscan API 的配置
+- 方便统一修改和维护
+
+**导出内容**:
+
+```typescript
+/**
+ * Etherscan API V2 统一端点
+ * V2 API 使用统一的端点，通过 chainid 参数指定链
+ */
+export const ETHERSCAN_API_V2_URL = "https://api.etherscan.io/v2/api";
+
+/**
+ * 获取 Etherscan API Key
+ * 从环境变量中读取，如果不存在则返回 undefined
+ * @returns API Key 字符串，如果未设置则返回 undefined
+ */
+export function getEtherscanApiKey(): string | undefined;
+```
+
+**使用示例**:
+
+```typescript
+import { ETHERSCAN_API_V2_URL, getEtherscanApiKey } from "@/lib/config/etherscan";
+
+// 获取 API Key
+const apiKey = getEtherscanApiKey();
+
+// 使用 API URL
+const apiUrl = ETHERSCAN_API_V2_URL;
+```
+
+**环境变量**:
+- `ETHERSCAN_API_KEY`: Etherscan API Key（可选，但建议设置以提高请求限制）
+
+**注意事项**:
+- API Key 从环境变量 `process.env.ETHERSCAN_API_KEY` 读取
+- 如果没有设置 API Key，某些 API 调用可能会受到速率限制
+
+---
+
+### navigation.ts
+
+**文件路径**: `lib/config/navigation.ts`
+
+**作用**: 
+- 集中管理应用的导航菜单
+- 方便统一修改和维护
+- 确保所有页面使用相同的导航配置
+- 支持二级菜单分类
+
+**导出内容**:
+
+```typescript
+/**
+ * 导航项接口
+ */
+export interface NavItem {
+  /** 如果提供，点击该项会跳转；如果不提供，仅作为分类标题 */
+  href?: string;
+  /** 菜单项标签 */
+  label: string;
+  /** 二级菜单项 */
+  children?: NavItem[];
+}
+
+/**
+ * 导航菜单项列表
+ * 修改此数组即可添加或移除导航项
+ * 支持二级菜单：如果 NavItem 有 children 属性，将显示为下拉菜单
+ * 
+ * 注意：除首页外，所有页面都应放入对应的二级菜单分类中
+ */
+export const navItems: NavItem[];
+```
+
+**使用示例**:
+
+```typescript
+import { navItems, type NavItem } from "@/lib/config/navigation";
+
+// 在 Navigation 组件中使用
+export function Navigation() {
+  return (
+    <nav>
+      {navItems.map((item) => (
+        // 渲染导航项
+      ))}
+    </nav>
+  );
+}
+
+// 添加新的导航项
+const newNavItem: NavItem = {
+  label: "新功能",
+  children: [
+    { href: "/new/feature1", label: "功能1" },
+    { href: "/new/feature2", label: "功能2" },
+  ],
+};
+```
+
+**注意事项**:
+- 除首页外，所有页面都应放入对应的二级菜单分类中
+- 如果 `NavItem` 有 `children` 属性，将显示为下拉菜单
+- 如果 `NavItem` 没有 `href`，仅作为分类标题，不可点击
+
+---
+
+## Services 服务工具库
+
+### etherscan.ts
+
+**文件路径**: `lib/services/etherscan.ts`
+
+**作用**: 
+- 提供 Etherscan API 调用的工具函数
+- 封装 URL 组装逻辑
+- 封装 API 调用逻辑
+- 提供常用的 Etherscan API 调用函数
+
+**导出接口**:
+
+```typescript
+/**
+ * Etherscan API 响应接口
+ */
+export interface EtherscanApiResponse<T = unknown> {
+  status: string;
+  message: string;
+  result: T;
+}
+
+/**
+ * 交易记录接口
+ */
+export interface Transaction {
+  blockNumber: string;
+  timeStamp: string;
+  hash: string;
+  from: string;
+  to: string;
+  value: string;
+  gasUsed: string;
+  gasPrice: string;
+  isError: string;
+  txreceipt_status: string;
+}
+```
+
+**导出函数**:
+
+#### buildEtherscanApiUrl
+
+**函数签名**:
+
+```typescript
+/**
+ * 构建 Etherscan API URL
+ * @param params - URL 查询参数对象
+ * @returns 完整的 API URL
+ */
+export function buildEtherscanApiUrl(params: Record<string, string>): string;
+```
+
+**作用**: 
+- 构建完整的 Etherscan API URL
+- 自动添加 API Key（如果已配置）
+
+**使用示例**:
+
+```typescript
+import { buildEtherscanApiUrl } from "@/lib/services/etherscan";
+
+const url = buildEtherscanApiUrl({
+  chainid: "1",
+  module: "account",
+  action: "txlist",
+  address: "0x...",
+});
+// 返回: "https://api.etherscan.io/v2/api?chainid=1&module=account&action=txlist&address=0x...&apikey=..."
+```
+
+---
+
+#### callEtherscanApi
+
+**函数签名**:
+
+```typescript
+/**
+ * 调用 Etherscan API
+ * @param params - API 请求参数
+ * @returns API 响应数据
+ */
+export async function callEtherscanApi<T = unknown>(
+  params: Record<string, string>
+): Promise<EtherscanApiResponse<T>>;
+```
+
+**作用**: 
+- 调用 Etherscan API 并返回响应
+- 自动处理错误响应
+- 将 "No transactions found" 视为正常情况，返回空数组
+
+**使用示例**:
+
+```typescript
+import { callEtherscanApi } from "@/lib/services/etherscan";
+
+try {
+  const response = await callEtherscanApi<Transaction[]>({
+    chainid: "1",
+    module: "account",
+    action: "txlist",
+    address: "0x...",
+  });
+  
+  console.log(response.result); // Transaction[]
+} catch (error) {
+  console.error("API 调用失败:", error);
+}
+```
+
+**错误处理**:
+- 如果 HTTP 请求失败，抛出错误
+- 如果 API 返回 `status: "0"` 且消息不是 "No transactions found"，抛出错误
+- "No transactions found" 被视为正常情况，返回空数组
+
+---
+
+#### getTransactions
+
+**函数签名**:
+
+```typescript
+/**
+ * 获取指定地址的交易列表
+ * @param address - 要查询的地址
+ * @param chainId - 链 ID
+ * @param options - 可选参数
+ * @returns 交易列表响应
+ */
+export async function getTransactions(
+  address: string,
+  chainId: number,
+  options?: {
+    startBlock?: string;
+    endBlock?: string;
+    page?: string;
+    offset?: string;
+    sort?: "asc" | "desc";
+  }
+): Promise<EtherscanApiResponse<Transaction[]>>;
+```
+
+**作用**: 
+- 获取指定地址的所有交易记录
+- 支持分页和排序
+- 支持指定区块范围
+
+**参数说明**:
+- `address`: 要查询的以太坊地址（必需）
+- `chainId`: 链 ID（必需）
+- `options.startBlock`: 起始区块号（默认: "0"）
+- `options.endBlock`: 结束区块号（默认: "99999999"）
+- `options.page`: 页码（默认: "1"）
+- `options.offset`: 每页数量（默认: "100"）
+- `options.sort`: 排序方式，"asc" 或 "desc"（默认: "desc"）
+
+**使用示例**:
+
+```typescript
+import { getTransactions } from "@/lib/services/etherscan";
+
+// 获取地址的所有交易
+const response = await getTransactions("0x...", 1);
+
+// 获取最近的 10 条交易
+const recentTxs = await getTransactions("0x...", 1, {
+  page: "1",
+  offset: "10",
+  sort: "desc",
+});
+
+// 获取指定区块范围的交易
+const rangeTxs = await getTransactions("0x...", 1, {
+  startBlock: "18000000",
+  endBlock: "19000000",
+});
+```
+
+**返回值**:
+- 返回 `EtherscanApiResponse<Transaction[]>`，包含交易列表
+- 如果地址没有交易，返回空数组
+
+---
+
+### usdt.ts
+
+**文件路径**: `lib/services/usdt.ts`
+
+**作用**: 
+- 提供 USDT 合约相关的工具函数
+- 提供获取 USDT 交易记录的函数
+
+**导出函数**:
+
+#### getUSDTTransactions
+
+**函数签名**:
+
+```typescript
+/**
+ * 获取 USDT 合约的交易记录
+ * @param chainId - 链 ID（目前仅支持以太坊主网，chainId = 1）
+ * @param options - 可选参数
+ * @returns USDT 交易列表响应
+ */
+export async function getUSDTTransactions(
+  chainId: number = 1,
+  options?: {
+    startBlock?: string;
+    endBlock?: string;
+    page?: string;
+    offset?: string;
+    sort?: "asc" | "desc";
+  }
+): Promise<EtherscanApiResponse<Transaction[]>>;
+```
+
+**作用**: 
+- 获取 USDT 合约的所有代币转账交易记录
+- 使用 Etherscan API 的 `tokentx` 接口
+- 目前仅支持以太坊主网
+
+**参数说明**:
+- `chainId`: 链 ID（默认: 1，目前仅支持主网）
+- `options.startBlock`: 起始区块号（默认: "0"）
+- `options.endBlock`: 结束区块号（默认: "99999999"）
+- `options.page`: 页码（默认: "1"）
+- `options.offset`: 每页数量（默认: "10"）
+- `options.sort`: 排序方式，"asc" 或 "desc"（默认: "desc"）
+
+**使用示例**:
+
+```typescript
+import { getUSDTTransactions } from "@/lib/services/usdt";
+
+// 获取最近的 10 条 USDT 交易
+const response = await getUSDTTransactions(1, {
+  page: "1",
+  offset: "10",
+  sort: "desc",
+});
+
+// 获取指定区块范围的 USDT 交易
+const rangeTxs = await getUSDTTransactions(1, {
+  startBlock: "18000000",
+  endBlock: "19000000",
+});
+```
+
+**注意事项**:
+- 目前仅支持以太坊主网（chainId = 1）
+- 如果传入其他链 ID，会抛出错误
+- 默认每页返回 10 条记录（与 `getTransactions` 不同）
+- 返回的是代币转账交易（`tokentx`），不是普通 ETH 转账
+
+**返回值**:
+- 返回 `EtherscanApiResponse<Transaction[]>`，包含 USDT 交易列表
+- 交易记录中的 `value` 字段是 USDT 的数量（6 位小数）
+
+---
+
+## 使用建议
+
+1. **优先使用服务工具库**: 在需要调用 Etherscan API 时，优先使用 `lib/services/etherscan.ts` 中的函数，而不是直接调用 API
+2. **统一配置管理**: 所有配置项都集中在 `lib/config/` 目录下，修改配置时只需修改对应文件
+3. **类型安全**: 所有函数都有完整的 TypeScript 类型定义，确保类型安全
+4. **错误处理**: 服务函数会自动处理常见的错误情况，但仍需在调用处进行错误处理
+
+## 注意事项
+
+- **API Key**: 建议在环境变量中设置 `ETHERSCAN_API_KEY`，以提高 API 请求限制
+- **链支持**: 目前大部分功能只支持以太坊主网和 Sepolia 测试网
+- **异步函数**: 所有服务函数都是异步的，需要使用 `await` 或 `.then()` 调用
+- **错误处理**: 调用服务函数时应该使用 `try-catch` 进行错误处理
+- **类型导入**: 使用类型时，使用 `import type` 进行类型导入，例如 `import type { Transaction } from "@/lib/services/etherscan"`
+
+## 扩展指南
+
+### 添加新的链支持
+
+1. 在 `lib/config/chains.ts` 中添加新的链到 `supportedChains` 数组
+2. 在 `lib/config/etherscan.ts` 中可能需要添加对应链的 API URL（如果需要）
+3. 更新相关服务函数以支持新链
+
+### 添加新的合约地址
+
+1. 在 `lib/config/contracts.ts` 中添加新的合约地址常量
+2. 如果合约支持多链，可以使用对象结构按链 ID 组织
+
+### 添加新的服务函数
+
+1. 在 `lib/services/` 目录下创建新的服务文件或扩展现有文件
+2. 使用 `callEtherscanApi` 或 `buildEtherscanApiUrl` 来调用 API
+3. 定义清晰的接口和类型
+4. 添加完整的 JSDoc 注释

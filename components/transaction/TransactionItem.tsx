@@ -76,7 +76,7 @@ export function TransactionItem({
     transaction.isError === "1" || transaction.txreceipt_status === "0";
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
+    <div className="rounded-xl border border-border bg-card p-4">
       <div className="flex flex-col gap-3">
         {/* 交易哈希和状态 */}
         <div className="flex items-center justify-between">
@@ -85,20 +85,20 @@ export function TransactionItem({
               <span
                 className={`rounded-full px-2 py-1 text-xs font-medium ${
                   isSent
-                    ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                    : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                    ? "bg-destructive/10 text-destructive"
+                    : "bg-primary/10 text-primary"
                 }`}
               >
                 {isSent ? "发送" : "接收"}
               </span>
             )}
             {typeLabel && (
-              <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+              <span className="rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
                 {typeLabel}
               </span>
             )}
             {isFailed && (
-              <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400">
+              <span className="rounded-full bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive">
                 失败
               </span>
             )}
@@ -107,7 +107,7 @@ export function TransactionItem({
             href={`${blockExplorerUrl}/tx/${transaction.hash}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-mono text-sm text-sky-500 hover:underline"
+            className="font-mono text-sm text-primary hover:underline"
           >
             {formatAddress(transaction.hash)}
           </a>
@@ -115,14 +115,14 @@ export function TransactionItem({
 
         {/* 交易金额 */}
         <div className="flex items-center justify-between">
-          <span className="text-sm text-zinc-500 dark:text-zinc-400">金额</span>
+          <span className="text-sm text-muted-foreground">金额</span>
           <span
             className={`font-mono text-base font-semibold ${
               showDirection
                 ? isSent
-                  ? "text-red-600 dark:text-red-400"
-                  : "text-green-600 dark:text-green-400"
-                : "text-green-600 dark:text-green-400"
+                  ? "text-destructive"
+                  : "text-primary"
+                : "text-primary"
             }`}
           >
             {showDirection && isSent ? "-" : showDirection ? "+" : ""}
@@ -135,14 +135,12 @@ export function TransactionItem({
           <>
             {/* 发送地址 */}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                发送地址
-              </span>
+              <span className="text-sm text-muted-foreground">发送地址</span>
               <a
                 href={`${blockExplorerUrl}/address/${transaction.from}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono text-sm text-sky-500 hover:underline"
+                className="font-mono text-sm text-primary hover:underline"
               >
                 {formatAddress(transaction.from)}
               </a>
@@ -150,14 +148,12 @@ export function TransactionItem({
 
             {/* 接收地址 */}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                接收地址
-              </span>
+              <span className="text-sm text-muted-foreground">接收地址</span>
               <a
                 href={`${blockExplorerUrl}/address/${transaction.to}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono text-sm text-sky-500 hover:underline"
+                className="font-mono text-sm text-primary hover:underline"
               >
                 {formatAddress(transaction.to)}
               </a>
@@ -166,7 +162,7 @@ export function TransactionItem({
         ) : (
           /* 对方地址（仅显示一个） */
           <div className="flex items-center justify-between">
-            <span className="text-sm text-zinc-500 dark:text-zinc-400">
+            <span className="text-sm text-muted-foreground">
               {isSent ? "接收地址" : "发送地址"}
             </span>
             <a
@@ -175,7 +171,7 @@ export function TransactionItem({
               }`}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-mono text-sm text-sky-500 hover:underline"
+              className="font-mono text-sm text-primary hover:underline"
             >
               {formatAddress(isSent ? transaction.to : transaction.from)}
             </a>
@@ -184,9 +180,7 @@ export function TransactionItem({
 
         {/* 交易费用 */}
         <div className="flex items-center justify-between">
-          <span className="text-sm text-zinc-500 dark:text-zinc-400">
-            交易费用
-          </span>
+          <span className="text-sm text-muted-foreground">交易费用</span>
           <span className="font-mono text-sm">
             {formattedFee} {feeCurrencySymbol}
           </span>
@@ -194,7 +188,7 @@ export function TransactionItem({
 
         {/* 时间 */}
         <div className="flex items-center justify-between">
-          <span className="text-sm text-zinc-500 dark:text-zinc-400">时间</span>
+          <span className="text-sm text-muted-foreground">时间</span>
           <span className="text-sm">
             {formatTimestamp(transaction.timeStamp)}
           </span>
@@ -202,12 +196,12 @@ export function TransactionItem({
 
         {/* 区块号 */}
         <div className="flex items-center justify-between">
-          <span className="text-sm text-zinc-500 dark:text-zinc-400">区块</span>
+          <span className="text-sm text-muted-foreground">区块</span>
           <a
             href={`${blockExplorerUrl}/block/${transaction.blockNumber}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-mono text-sm text-sky-500 hover:underline"
+            className="font-mono text-sm text-primary hover:underline"
           >
             {transaction.blockNumber}
           </a>
