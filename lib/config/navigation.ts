@@ -21,4 +21,5 @@ export const navItems: NavItem[] = [
   { href: "/transfer", label: "转账" },
   { href: "/chain-balance", label: "链切换" },
   { href: "/transactions", label: "交易历史" },
+  { href: "/usdt-monitor", label: "USDT 监控" },
 ];
