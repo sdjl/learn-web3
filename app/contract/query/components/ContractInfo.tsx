@@ -128,7 +128,7 @@ export function ContractInfoDisplay({ contractInfo }: ContractInfoProps) {
             源代码
           </label>
           <div className="mt-1 max-h-96 overflow-auto rounded-lg border border-border bg-muted p-4">
-            <pre className="whitespace-pre-wrap break-words font-mono text-xs text-foreground">
+            <pre className="whitespace-pre-wrap wrap-break-word font-mono text-xs text-foreground">
               {contractInfo.sourceCode}
             </pre>
           </div>

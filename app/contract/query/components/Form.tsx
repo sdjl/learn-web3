@@ -11,7 +11,6 @@
 // ============================================================
 
 import { useState } from "react";
-import { useAccount } from "wagmi";
 import { isAddress } from "viem";
 import { supportedChains } from "@/lib/config/chains";
 import { USDT_CONTRACT_ADDRESS } from "@/lib/config/contracts";
@@ -25,9 +24,6 @@ interface FormProps {
 }
 
 export function Form({ onQuery }: FormProps) {
-  // 获取当前链信息（用于显示，但不强制使用）
-  const { chain } = useAccount();
-
   // 表单状态
   const [address, setAddress] = useState("");
   const [selectedChainId, setSelectedChainId] = useState<string>(
@@ -84,19 +80,12 @@ export function Form({ onQuery }: FormProps) {
     <section className="rounded-3xl border border-border bg-card p-6 shadow-xl">
       <h2 className="mb-6 text-lg font-semibold">查询合约</h2>
 
-      {/* 当前连接网络提示（仅供参考） */}
-      {chain && (
-        <div className="mb-6 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
-          当前连接网络:{" "}
-          <span className="font-bold text-primary">
-            {chain.name}
-          </span>{" "}
-          (链 ID: {chain.id})
-          <span className="ml-2">
-            （仅供参考，查询将使用下方选择的网络）
-          </span>
-        </div>
-      )}
+      {/* 选择的网络提示 */}
+      <div className="mb-6 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
+        查询网络:{" "}
+        <span className="font-bold text-primary">{selectedChain.name}</span> (链
+        ID: {selectedChain.id})
+      </div>
 
       <form onSubmit={handleQuery} className="space-y-6">
         {/* 网络选择 */}
