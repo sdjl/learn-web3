@@ -32,11 +32,6 @@ export function Navigation() {
   return (
     <nav className="border-b border-zinc-200 bg-white/70 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/70">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold uppercase tracking-[0.2em] text-sky-500">
-            Learn Wagmi
-          </span>
-        </div>
         <div className="flex gap-1">
           {navItems.map((item) => {
             const isActive = isItemActive(item);
@@ -103,6 +98,11 @@ export function Navigation() {
               </Link>
             );
           })}
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold uppercase tracking-[0.2em] text-sky-500">
+            Learn Wagmi
+          </span>
         </div>
       </div>
     </nav>

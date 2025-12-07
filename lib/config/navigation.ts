@@ -26,23 +26,16 @@ export const navItems: NavItem[] = [
   {
     label: "交易",
     children: [
-      { href: "/transfer", label: "转账" },
-      { href: "/transactions", label: "交易历史" },
-      // 未来可在此添加更多交易相关页面，如：批量转账、交易签名等
+      { href: "/trade/transfer", label: "转账" },
+      { href: "/trade/transactions", label: "交易历史" },
     ],
   },
   {
     label: "监控",
-    children: [
-      { href: "/usdt-monitor", label: "USDT 监控" },
-      // 未来可在此添加更多监控相关页面，如：ETH 监控、多币种监控等
-    ],
+    children: [{ href: "/monitor/usdt-monitor", label: "USDT 监控" }],
   },
   {
     label: "工具",
-    children: [
-      { href: "/chain-balance", label: "链切换" },
-      // 未来可在此添加更多工具相关页面，如：地址查询、Gas 估算等
-    ],
+    children: [{ href: "/tools/chain-balance", label: "链切换" }],
   },
 ];
