@@ -5,21 +5,44 @@
 // - 集中管理应用的导航菜单
 // - 方便统一修改和维护
 // - 确保所有页面使用相同的导航配置
+// - 支持二级菜单分类
 // ============================================================
 
 export interface NavItem {
-  href: string;
+  href?: string; // 如果提供，点击该项会跳转；如果不提供，仅作为分类标题
   label: string;
+  children?: NavItem[]; // 二级菜单项
 }
 
 /**
  * 导航菜单项列表
  * 修改此数组即可添加或移除导航项
+ * 支持二级菜单：如果 NavItem 有 children 属性，将显示为下拉菜单
+ *
+ * 注意：除首页外，所有页面都应放入对应的二级菜单分类中
  */
 export const navItems: NavItem[] = [
   { href: "/", label: "首页" },
-  { href: "/transfer", label: "转账" },
-  { href: "/chain-balance", label: "链切换" },
-  { href: "/transactions", label: "交易历史" },
-  { href: "/usdt-monitor", label: "USDT 监控" },
+  {
+    label: "交易",
+    children: [
+      { href: "/transfer", label: "转账" },
+      { href: "/transactions", label: "交易历史" },
+      // 未来可在此添加更多交易相关页面，如：批量转账、交易签名等
+    ],
+  },
+  {
+    label: "监控",
+    children: [
+      { href: "/usdt-monitor", label: "USDT 监控" },
+      // 未来可在此添加更多监控相关页面，如：ETH 监控、多币种监控等
+    ],
+  },
+  {
+    label: "工具",
+    children: [
+      { href: "/chain-balance", label: "链切换" },
+      // 未来可在此添加更多工具相关页面，如：地址查询、Gas 估算等
+    ],
+  },
 ];
