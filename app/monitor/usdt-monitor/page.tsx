@@ -17,8 +17,8 @@ export default function USDTMonitorPage() {
     <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-10 px-6 py-16 text-foreground">
       {/* 页面标题区域组件 - 显示页面标题和描述信息 */}
       <Header
-        label="USDT 监控"
-        title="实时监控 USDT 交易"
+        label="USDT 交易监听"
+        title="实时监听 USDT 交易"
         description="查看 USDT 合约在以太坊主网上的最近 10 条交易记录，数据每 30 秒自动刷新"
       />
 

@@ -9,11 +9,11 @@
 // - 支持获取最近的交易记录
 // ============================================================
 
-import { getUSDTTransactions } from "@/lib/services/usdt";
-import type {
-  EtherscanApiResponse,
-  Transaction,
-} from "@/lib/services/etherscan";
+import {
+  getUSDTTransactions,
+  type EtherscanApiResponse,
+  type Transaction,
+} from "@/lib/contracts/usdt";
 
 /**
  * 获取 USDT 合约最近的交易记录

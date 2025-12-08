@@ -13,7 +13,7 @@
 import { useState } from "react";
 import { isAddress } from "viem";
 import { supportedChains } from "@/lib/config/chains";
-import { USDT_CONTRACT_ADDRESS } from "@/lib/config/contracts";
+import { USDT_CONTRACT_ADDRESS } from "@/lib/config/addresses";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
 import type { FormProps } from "../types";

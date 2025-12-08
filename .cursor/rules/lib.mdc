@@ -1,24 +1,309 @@
 # 公共库文件文档
 
-本文档介绍 `lib` 目录下的所有公共库文件和函数，包括配置文件和服务工具库。
+本文档介绍 `lib` 目录下的所有公共库文件和函数，包括 ABI 工具、配置文件、合约封装和第三方服务。
 
 ## 目录结构
 
 ```
 lib/
+├── abi/             # ABI 工具库
+│   ├── types.ts          # ABI 相关类型定义
+│   ├── utils.ts          # ABI 工具函数（使用 viem）
+│   ├── parser.ts         # 事件日志解析器（使用 viem）
+│   └── usdt.ts           # USDT 合约 ABI 定义
 ├── config/          # 配置文件
-│   ├── chains.ts           # 链配置
-│   ├── contracts.ts        # 合约地址配置
-│   ├── etherscan.ts        # Etherscan API 配置
-│   └── navigation.ts       # 导航配置
-└── services/        # 服务工具库
-    ├── etherscan.ts        # Etherscan API 工具库
-    └── usdt.ts            # USDT 服务工具库
+│   ├── addresses.ts      # 合约地址配置
+│   ├── chains.ts         # 链配置
+│   ├── etherscan.ts      # Etherscan API 配置
+│   └── navigation.ts     # 导航配置
+├── contracts/       # 合约高层封装
+│   └── usdt.ts           # USDT 合约封装
+├── services/        # 第三方服务封装
+│   └── etherscan.ts      # Etherscan API 服务
+└── utils.ts         # 通用工具函数（Tailwind CSS）
 ```
 
 ---
 
-## Config 配置文件
+## ABI 工具库 (lib/abi/)
+
+ABI 工具库提供了处理智能合约 ABI（Application Binary Interface）的工具函数。
+本模块使用 viem 库提供的函数来实现核心功能，避免重复实现。
+
+### types.ts
+
+**文件路径**: `lib/abi/types.ts`
+
+**作用**: 
+- 定义 ABI 相关的 TypeScript 类型
+- 定义事件解析相关的类型
+
+**导出类型**:
+
+```typescript
+/**
+ * 事件 ABI 输入参数定义
+ */
+export interface EventAbiInput {
+  indexed: boolean;  // 是否为 indexed 参数
+  name: string;      // 参数名称，如 "from"、"to"、"value"
+  type: string;      // 参数类型，如 "address"、"uint256"
+}
+
+/**
+ * 事件 ABI 定义
+ */
+export interface EventAbiItem {
+  anonymous: boolean;           // 是否为匿名事件
+  inputs: readonly EventAbiInput[];  // 参数列表
+  name: string;                 // 事件名称
+  type: "event";                // 固定为 "event"
+}
+
+/**
+ * 原始事件日志数据（来自 Etherscan API）
+ */
+export interface RawEventLog {
+  topics: string[];      // topics[0] 是事件签名，后续是 indexed 参数
+  data: string;          // 非 indexed 参数的 ABI 编码数据
+  blockNumber: string;
+  timeStamp: string;
+  logIndex: string;
+  transactionHash: string;
+}
+
+/**
+ * 解析后的事件数据
+ */
+export interface ParsedEvent {
+  eventName: string;
+  transactionHash: string;
+  blockNumber: string;
+  timeStamp: string;
+  logIndex: string;
+  params: Record<string, string>;  // 参数名 -> 参数值
+}
+```
+
+---
+
+### utils.ts
+
+**文件路径**: `lib/abi/utils.ts`
+
+**作用**: 
+- 提供事件签名计算（使用 viem 的 toEventSelector）
+- 构建事件名称和 topic0 的映射关系
+- 查找事件 ABI 定义
+
+**导出函数**:
+
+#### getEventTopic0
+
+```typescript
+/**
+ * 获取事件的 topic0（事件选择器）
+ * 使用 viem 的 toEventSelector 计算事件签名的 keccak256 哈希
+ * 
+ * @param eventAbi - 事件的 ABI 定义
+ * @returns 事件签名的 keccak256 哈希值（十六进制字符串）
+ */
+export function getEventTopic0(eventAbi: EventAbiItem): string;
+```
+
+**使用示例**:
+
+```typescript
+import { getEventTopic0 } from "@/lib/abi/utils";
+
+const transferAbi = {
+  name: "Transfer",
+  type: "event" as const,
+  anonymous: false,
+  inputs: [
+    { indexed: true, name: "from", type: "address" },
+    { indexed: true, name: "to", type: "address" },
+    { indexed: false, name: "value", type: "uint256" },
+  ],
+};
+
+const topic0 = getEventTopic0(transferAbi);
+// 返回: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+```
+
+#### buildEventTopicsMap
+
+```typescript
+/**
+ * 构建事件名称到 topic0 的映射表
+ * 
+ * @param eventAbiList - 事件 ABI 数组
+ * @returns 事件名称到 topic0 的映射对象
+ */
+export function buildEventTopicsMap(
+  eventAbiList: readonly EventAbiItem[]
+): Record<string, string>;
+```
+
+#### buildTopicToEventNameMap
+
+```typescript
+/**
+ * 构建 topic0 到事件名称的反向映射表
+ * 用于根据 topic0 反查事件名称
+ * 
+ * @param eventAbiList - 事件 ABI 数组
+ * @returns topic0 到事件名称的映射对象
+ */
+export function buildTopicToEventNameMap(
+  eventAbiList: readonly EventAbiItem[]
+): Record<string, string>;
+```
+
+#### getEventNames
+
+```typescript
+/**
+ * 从事件 ABI 数组中提取所有事件名称
+ * 
+ * @param eventAbiList - 事件 ABI 数组
+ * @returns 事件名称数组
+ */
+export function getEventNames(eventAbiList: readonly EventAbiItem[]): string[];
+```
+
+#### findEventAbi
+
+```typescript
+/**
+ * 根据事件名称查找对应的 ABI 定义
+ * 
+ * @param eventAbiList - 事件 ABI 数组
+ * @param eventName - 要查找的事件名称
+ * @returns 找到的事件 ABI，如果未找到则返回 undefined
+ */
+export function findEventAbi(
+  eventAbiList: readonly EventAbiItem[],
+  eventName: string
+): EventAbiItem | undefined;
+```
+
+---
+
+### parser.ts
+
+**文件路径**: `lib/abi/parser.ts`
+
+**作用**: 
+- 使用 viem 的 decodeEventLog 解析事件日志
+- 将原始事件数据转换为可读格式
+
+**导出函数**:
+
+#### parseEventLog
+
+```typescript
+/**
+ * 使用 viem 解析单个事件日志
+ * 
+ * @param log - 原始事件日志数据
+ * @param eventAbiList - 合约的所有事件 ABI 列表
+ * @param topicToEventName - topic0 到事件名称的映射表
+ * @returns 解析后的事件对象，如果事件无法识别则返回 null
+ */
+export function parseEventLog(
+  log: RawEventLog,
+  eventAbiList: readonly EventAbiItem[],
+  topicToEventName: Record<string, string>
+): ParsedEvent | null;
+```
+
+#### parseEventLogs
+
+```typescript
+/**
+ * 批量解析事件日志
+ * 自动过滤掉无法识别的事件，可选按时间戳排序
+ * 
+ * @param logs - 原始事件日志数组
+ * @param eventAbiList - 合约的所有事件 ABI 列表
+ * @param sortDesc - 是否按时间戳倒序排列，默认 true
+ * @returns 解析后的事件数组
+ */
+export function parseEventLogs(
+  logs: RawEventLog[],
+  eventAbiList: readonly EventAbiItem[],
+  sortDesc?: boolean
+): ParsedEvent[];
+```
+
+**使用示例**:
+
+```typescript
+import { parseEventLogs } from "@/lib/abi/parser";
+import { USDT_EVENT_ABI } from "@/lib/abi/usdt";
+
+// 解析事件日志
+const events = parseEventLogs(response.result, USDT_EVENT_ABI, true);
+
+for (const event of events) {
+  console.log(`${event.eventName}: from=${event.params.from}, to=${event.params.to}`);
+}
+```
+
+---
+
+### usdt.ts
+
+**文件路径**: `lib/abi/usdt.ts`
+
+**作用**: 
+- 定义 USDT 合约的事件 ABI
+- 提供 USDT 事件名称类型
+
+**导出内容**:
+
+```typescript
+/**
+ * USDT 合约事件 ABI
+ * 包含 USDT 合约的所有事件，按发生频率从高到低排序
+ */
+export const USDT_EVENT_ABI: readonly EventAbiItem[];
+
+/**
+ * USDT 事件名称列表
+ */
+export const USDT_EVENT_NAMES: readonly string[];
+
+/**
+ * USDT 事件名称类型
+ */
+export type USDTEventName = "Transfer" | "Approval" | "Issue" | "Redeem" | 
+  "AddedBlackList" | "RemovedBlackList" | "DestroyedBlackFunds" | 
+  "Params" | "Pause" | "Unpause" | "Deprecate";
+```
+
+---
+
+## Config 配置文件 (lib/config/)
+
+### addresses.ts
+
+**文件路径**: `lib/config/addresses.ts`
+
+**作用**: 
+- 集中管理所有智能合约地址
+
+**导出内容**:
+
+```typescript
+/**
+ * USDT 合约地址（以太坊主网）
+ */
+export const USDT_CONTRACT_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+```
+
+---
 
 ### chains.ts
 
@@ -26,70 +311,25 @@ lib/
 
 **作用**: 
 - 集中管理应用支持的区块链网络
-- 方便统一修改和维护
-- 确保所有页面使用相同的链配置
 
 **导出内容**:
 
 ```typescript
 /**
  * 应用支持的链列表
- * 修改此数组即可添加或移除支持的链
  */
 export const supportedChains: Chain[] = [mainnet, sepolia];
-```
 
-**使用示例**:
-
-```typescript
-import { supportedChains } from "@/lib/config/chains";
-
-// 在 providers 中使用
-const wagmiConfig = getDefaultConfig({
-  appName: "Learn Wagmi",
-  projectId,
-  chains: supportedChains as [Chain, ...Chain[]],
-  ssr: true,
-});
-```
-
-**注意事项**:
-- 目前只支持主网（mainnet）和 Sepolia 测试网
-- 类型为 `Chain[]`，来自 `wagmi/chains`
-
----
-
-### contracts.ts
-
-**文件路径**: `lib/config/contracts.ts`
-
-**作用**: 
-- 集中管理所有智能合约地址
-- 方便统一修改和维护
-- 支持多链部署的合约地址
-
-**导出内容**:
-
-```typescript
 /**
- * USDT 合约地址（以太坊主网）
- * Tether USD (USDT) 在以太坊主网上的合约地址
+ * 判断指定的链 ID 是否是支持的链
  */
-export const USDT_CONTRACT_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+export function isSupportedChain(chainId: number): boolean;
+
+/**
+ * 根据链 ID 从支持的链列表中找到对应的链配置
+ */
+export function getChainById(chainId: number): Chain | undefined;
 ```
-
-**使用示例**:
-
-```typescript
-import { USDT_CONTRACT_ADDRESS } from "@/lib/config/contracts";
-
-// 使用 USDT 合约地址
-const contractAddress = USDT_CONTRACT_ADDRESS;
-```
-
-**注意事项**:
-- 目前只定义了以太坊主网上的 USDT 合约地址
-- 如需支持其他链，可以扩展为对象结构，按链 ID 组织
 
 ---
 
@@ -98,44 +338,22 @@ const contractAddress = USDT_CONTRACT_ADDRESS;
 **文件路径**: `lib/config/etherscan.ts`
 
 **作用**: 
-- 集中管理 Etherscan API 的配置
-- 方便统一修改和维护
+- 管理 Etherscan API 的配置
 
 **导出内容**:
 
 ```typescript
 /**
  * Etherscan API V2 统一端点
- * V2 API 使用统一的端点，通过 chainid 参数指定链
  */
 export const ETHERSCAN_API_V2_URL = "https://api.etherscan.io/v2/api";
 
 /**
  * 获取 Etherscan API Key
- * 从环境变量中读取，如果不存在则返回 undefined
- * @returns API Key 字符串，如果未设置则返回 undefined
+ * 从环境变量 ETHERSCAN_API_KEY 读取
  */
 export function getEtherscanApiKey(): string | undefined;
 ```
-
-**使用示例**:
-
-```typescript
-import { ETHERSCAN_API_V2_URL, getEtherscanApiKey } from "@/lib/config/etherscan";
-
-// 获取 API Key
-const apiKey = getEtherscanApiKey();
-
-// 使用 API URL
-const apiUrl = ETHERSCAN_API_V2_URL;
-```
-
-**环境变量**:
-- `ETHERSCAN_API_KEY`: Etherscan API Key（可选，但建议设置以提高请求限制）
-
-**注意事项**:
-- API Key 从环境变量 `process.env.ETHERSCAN_API_KEY` 读取
-- 如果没有设置 API Key，某些 API 调用可能会受到速率限制
 
 ---
 
@@ -145,95 +363,128 @@ const apiUrl = ETHERSCAN_API_V2_URL;
 
 **作用**: 
 - 集中管理应用的导航菜单
-- 方便统一修改和维护
-- 确保所有页面使用相同的导航配置
-- 支持二级菜单分类
 
 **导出内容**:
 
 ```typescript
-/**
- * 导航项接口
- */
 export interface NavItem {
-  /** 如果提供，点击该项会跳转；如果不提供，仅作为分类标题 */
-  href?: string;
-  /** 菜单项标签 */
-  label: string;
-  /** 二级菜单项 */
-  children?: NavItem[];
+  href?: string;       // 链接地址，不提供则为分类标题
+  label: string;       // 显示文本
+  children?: NavItem[]; // 二级菜单
 }
 
-/**
- * 导航菜单项列表
- * 修改此数组即可添加或移除导航项
- * 支持二级菜单：如果 NavItem 有 children 属性，将显示为下拉菜单
- * 
- * 注意：除首页外，所有页面都应放入对应的二级菜单分类中
- */
 export const navItems: NavItem[];
+```
+
+---
+
+## Contracts 合约封装 (lib/contracts/)
+
+### usdt.ts
+
+**文件路径**: `lib/contracts/usdt.ts`
+
+**作用**: 
+- 提供 USDT 合约的高层封装函数
+- 封装交易查询和事件查询
+
+**导出类型**:
+
+```typescript
+/**
+ * USDT 事件查询结果
+ */
+export interface USDTEventsResult {
+  response: EtherscanApiResponse<EventLog[]>;
+  fromBlock: number;       // 查询的起始区块
+  currentBlock: number;    // 当前最新区块
+  confirmations: number;   // 延迟的区块数
+}
+```
+
+**导出函数**:
+
+#### getUSDTTransactions
+
+```typescript
+/**
+ * 获取 USDT 合约的代币交易记录
+ * 
+ * @param chainId - 链 ID，默认为 1（以太坊主网）
+ * @param options - 可选查询参数
+ * @returns USDT 交易列表
+ */
+export async function getUSDTTransactions(
+  chainId?: number,
+  options?: {
+    startBlock?: string;
+    endBlock?: string;
+    page?: string;
+    offset?: string;
+    sort?: "asc" | "desc";
+  }
+): Promise<EtherscanApiResponse<Transaction[]>>;
+```
+
+#### getUSDTEvents
+
+```typescript
+/**
+ * 获取 USDT 合约的事件日志
+ * 自动使用安全区块号以确保数据已确认
+ * 
+ * @param chainId - 链 ID，默认为 1（以太坊主网）
+ * @param options - 可选查询参数
+ * @returns 包含事件日志和区块信息的结果对象
+ */
+export async function getUSDTEvents(
+  chainId?: number,
+  options?: {
+    eventName?: USDTEventName;
+    fromBlock?: string;
+    toBlock?: string;
+    page?: string;
+    offset?: string;
+  }
+): Promise<USDTEventsResult>;
 ```
 
 **使用示例**:
 
 ```typescript
-import { navItems, type NavItem } from "@/lib/config/navigation";
+import { getUSDTEvents } from "@/lib/contracts/usdt";
+import { parseEventLogs } from "@/lib/abi/parser";
+import { USDT_EVENT_ABI } from "@/lib/abi/usdt";
 
-// 在 Navigation 组件中使用
-export function Navigation() {
-  return (
-    <nav>
-      {navItems.map((item) => (
-        // 渲染导航项
-      ))}
-    </nav>
-  );
-}
+// 获取最近的 Transfer 事件
+const result = await getUSDTEvents(1, { eventName: "Transfer", offset: "10" });
+const events = parseEventLogs(result.response.result, USDT_EVENT_ABI);
 
-// 添加新的导航项
-const newNavItem: NavItem = {
-  label: "新功能",
-  children: [
-    { href: "/new/feature1", label: "功能1" },
-    { href: "/new/feature2", label: "功能2" },
-  ],
-};
+console.log(`显示 ${result.confirmations} 个区块前的数据`);
 ```
-
-**注意事项**:
-- 除首页外，所有页面都应放入对应的二级菜单分类中
-- 如果 `NavItem` 有 `children` 属性，将显示为下拉菜单
-- 如果 `NavItem` 没有 `href`，仅作为分类标题，不可点击
 
 ---
 
-## Services 服务工具库
+## Services 服务工具库 (lib/services/)
 
 ### etherscan.ts
 
 **文件路径**: `lib/services/etherscan.ts`
 
 **作用**: 
-- 提供 Etherscan API 调用的工具函数
-- 封装 URL 组装逻辑
-- 封装 API 调用逻辑
-- 提供常用的 Etherscan API 调用函数
+- 封装 Etherscan API 调用
+- 提供交易和事件查询功能
+- 提供区块号查询功能
 
-**导出接口**:
+**导出类型**:
 
 ```typescript
-/**
- * Etherscan API 响应接口
- */
 export interface EtherscanApiResponse<T = unknown> {
-  status: string;
-  message: string;
-  result: T;
+  status: string;    // "1" 成功，"0" 失败
+  message: string;   // 响应消息
+  result: T;         // 数据内容
 }
 
-/**
- * 交易记录接口
- */
 export interface Transaction {
   blockNumber: string;
   timeStamp: string;
@@ -246,105 +497,102 @@ export interface Transaction {
   isError: string;
   txreceipt_status: string;
 }
+
+export interface EventLog {
+  address: string;
+  topics: string[];
+  data: string;
+  blockNumber: string;
+  blockHash: string;
+  timeStamp: string;
+  gasPrice: string;
+  gasUsed: string;
+  logIndex: string;
+  transactionHash: string;
+  transactionIndex: string;
+}
+
+export type TransactionType = "normal" | "token";
+```
+
+**导出常量**:
+
+```typescript
+/**
+ * 安全确认区块数（12 个区块约 2.4 分钟）
+ */
+export const SAFE_CONFIRMATIONS = 12;
+
+/**
+ * 最大区块号（用于 endBlock 默认值）
+ */
+export const MAX_BLOCK_NUMBER = "99999999";
 ```
 
 **导出函数**:
 
 #### buildEtherscanApiUrl
 
-**函数签名**:
-
 ```typescript
 /**
  * 构建 Etherscan API URL
- * @param params - URL 查询参数对象
- * @returns 完整的 API URL
+ * 自动附加 API Key
  */
 export function buildEtherscanApiUrl(params: Record<string, string>): string;
 ```
 
-**作用**: 
-- 构建完整的 Etherscan API URL
-- 自动添加 API Key（如果已配置）
-
-**使用示例**:
-
-```typescript
-import { buildEtherscanApiUrl } from "@/lib/services/etherscan";
-
-const url = buildEtherscanApiUrl({
-  chainid: "1",
-  module: "account",
-  action: "txlist",
-  address: "0x...",
-});
-// 返回: "https://api.etherscan.io/v2/api?chainid=1&module=account&action=txlist&address=0x...&apikey=..."
-```
-
----
-
 #### callEtherscanApi
-
-**函数签名**:
 
 ```typescript
 /**
- * 调用 Etherscan API
- * @param params - API 请求参数
- * @returns API 响应数据
+ * 调用 Etherscan API 并处理响应
+ * 自动处理错误和 "No transactions found" 情况
  */
 export async function callEtherscanApi<T = unknown>(
   params: Record<string, string>
 ): Promise<EtherscanApiResponse<T>>;
 ```
 
-**作用**: 
-- 调用 Etherscan API 并返回响应
-- 自动处理错误响应
-- 将 "No transactions found" 视为正常情况，返回空数组
-
-**使用示例**:
-
-```typescript
-import { callEtherscanApi } from "@/lib/services/etherscan";
-
-try {
-  const response = await callEtherscanApi<Transaction[]>({
-    chainid: "1",
-    module: "account",
-    action: "txlist",
-    address: "0x...",
-  });
-  
-  console.log(response.result); // Transaction[]
-} catch (error) {
-  console.error("API 调用失败:", error);
-}
-```
-
-**错误处理**:
-- 如果 HTTP 请求失败，抛出错误
-- 如果 API 返回 `status: "0"` 且消息不是 "No transactions found"，抛出错误
-- "No transactions found" 被视为正常情况，返回空数组
-
----
-
-#### getTransactions
-
-**函数签名**:
+#### getCurrentBlockNumber
 
 ```typescript
 /**
- * 获取指定地址的交易列表
+ * 获取指定链的当前最新区块号
+ */
+export async function getCurrentBlockNumber(chainId: number): Promise<number>;
+```
+
+#### getSafeBlockNumber
+
+```typescript
+/**
+ * 获取安全的查询起始区块号
+ * 返回 currentBlock - SAFE_CONFIRMATIONS
+ */
+export async function getSafeBlockNumber(
+  chainId: number
+): Promise<{ safeBlock: number; currentBlock: number }>;
+```
+
+#### getTransactions
+
+```typescript
+/**
+ * 获取指定地址的交易记录
+ * 支持普通交易和代币交易
+ * 
  * @param address - 要查询的地址
  * @param chainId - 链 ID
  * @param options - 可选参数
- * @returns 交易列表响应
+ * @param options.type - "normal" 或 "token"，默认 "normal"
+ * @param options.contractAddress - 代币合约地址（type 为 "token" 时使用）
  */
 export async function getTransactions(
   address: string,
   chainId: number,
   options?: {
+    type?: TransactionType;
+    contractAddress?: string;
     startBlock?: string;
     endBlock?: string;
     page?: string;
@@ -354,156 +602,79 @@ export async function getTransactions(
 ): Promise<EtherscanApiResponse<Transaction[]>>;
 ```
 
-**作用**: 
-- 获取指定地址的所有交易记录
-- 支持分页和排序
-- 支持指定区块范围
-
-**参数说明**:
-- `address`: 要查询的以太坊地址（必需）
-- `chainId`: 链 ID（必需）
-- `options.startBlock`: 起始区块号（默认: "0"）
-- `options.endBlock`: 结束区块号（默认: "99999999"）
-- `options.page`: 页码（默认: "1"）
-- `options.offset`: 每页数量（默认: "100"）
-- `options.sort`: 排序方式，"asc" 或 "desc"（默认: "desc"）
-
-**使用示例**:
-
-```typescript
-import { getTransactions } from "@/lib/services/etherscan";
-
-// 获取地址的所有交易
-const response = await getTransactions("0x...", 1);
-
-// 获取最近的 10 条交易
-const recentTxs = await getTransactions("0x...", 1, {
-  page: "1",
-  offset: "10",
-  sort: "desc",
-});
-
-// 获取指定区块范围的交易
-const rangeTxs = await getTransactions("0x...", 1, {
-  startBlock: "18000000",
-  endBlock: "19000000",
-});
-```
-
-**返回值**:
-- 返回 `EtherscanApiResponse<Transaction[]>`，包含交易列表
-- 如果地址没有交易，返回空数组
-
----
-
-### usdt.ts
-
-**文件路径**: `lib/services/usdt.ts`
-
-**作用**: 
-- 提供 USDT 合约相关的工具函数
-- 提供获取 USDT 交易记录的函数
-
-**导出函数**:
-
-#### getUSDTTransactions
-
-**函数签名**:
+#### getContractEventLogs
 
 ```typescript
 /**
- * 获取 USDT 合约的交易记录
- * @param chainId - 链 ID（目前仅支持以太坊主网，chainId = 1）
+ * 获取合约的事件日志
+ * 
+ * @param contractAddress - 合约地址
+ * @param chainId - 链 ID
  * @param options - 可选参数
- * @returns USDT 交易列表响应
+ * @param options.topic0 - 事件签名的 keccak256 哈希
  */
-export async function getUSDTTransactions(
-  chainId: number = 1,
+export async function getContractEventLogs(
+  contractAddress: string,
+  chainId: number,
   options?: {
-    startBlock?: string;
-    endBlock?: string;
+    topic0?: string;
+    fromBlock?: string;
+    toBlock?: string;
     page?: string;
     offset?: string;
-    sort?: "asc" | "desc";
   }
-): Promise<EtherscanApiResponse<Transaction[]>>;
+): Promise<EtherscanApiResponse<EventLog[]>>;
 ```
+
+---
+
+## 通用工具 (lib/utils.ts)
+
+**文件路径**: `lib/utils.ts`
 
 **作用**: 
-- 获取 USDT 合约的所有代币转账交易记录
-- 使用 Etherscan API 的 `tokentx` 接口
-- 目前仅支持以太坊主网
+- 提供 Tailwind CSS 类名合并工具
 
-**参数说明**:
-- `chainId`: 链 ID（默认: 1，目前仅支持主网）
-- `options.startBlock`: 起始区块号（默认: "0"）
-- `options.endBlock`: 结束区块号（默认: "99999999"）
-- `options.page`: 页码（默认: "1"）
-- `options.offset`: 每页数量（默认: "10"）
-- `options.sort`: 排序方式，"asc" 或 "desc"（默认: "desc"）
-
-**使用示例**:
+**导出函数**:
 
 ```typescript
-import { getUSDTTransactions } from "@/lib/services/usdt";
+import { cn } from "@/lib/utils";
 
-// 获取最近的 10 条 USDT 交易
-const response = await getUSDTTransactions(1, {
-  page: "1",
-  offset: "10",
-  sort: "desc",
-});
-
-// 获取指定区块范围的 USDT 交易
-const rangeTxs = await getUSDTTransactions(1, {
-  startBlock: "18000000",
-  endBlock: "19000000",
-});
+// 合并多个 class 名称，自动处理 Tailwind 冲突
+const className = cn("px-4 py-2", isActive && "bg-blue-500", "text-white");
 ```
-
-**注意事项**:
-- 目前仅支持以太坊主网（chainId = 1）
-- 如果传入其他链 ID，会抛出错误
-- 默认每页返回 10 条记录（与 `getTransactions` 不同）
-- 返回的是代币转账交易（`tokentx`），不是普通 ETH 转账
-
-**返回值**:
-- 返回 `EtherscanApiResponse<Transaction[]>`，包含 USDT 交易列表
-- 交易记录中的 `value` 字段是 USDT 的数量（6 位小数）
 
 ---
 
 ## 使用建议
 
-1. **优先使用服务工具库**: 在需要调用 Etherscan API 时，优先使用 `lib/services/etherscan.ts` 中的函数，而不是直接调用 API
-2. **统一配置管理**: 所有配置项都集中在 `lib/config/` 目录下，修改配置时只需修改对应文件
-3. **类型安全**: 所有函数都有完整的 TypeScript 类型定义，确保类型安全
-4. **错误处理**: 服务函数会自动处理常见的错误情况，但仍需在调用处进行错误处理
+1. **使用 viem 库函数**: ABI 相关的功能已使用 viem 实现，避免重复造轮子
+2. **优先使用高层封装**: 使用 `lib/contracts/usdt.ts` 而不是直接调用 `lib/services/etherscan.ts`
+3. **类型安全**: 所有函数都有完整的 TypeScript 类型定义
+4. **错误处理**: 服务函数会自动处理常见错误，但仍需在调用处进行错误处理
 
 ## 注意事项
 
-- **API Key**: 建议在环境变量中设置 `ETHERSCAN_API_KEY`，以提高 API 请求限制
-- **链支持**: 目前大部分功能只支持以太坊主网和 Sepolia 测试网
-- **异步函数**: 所有服务函数都是异步的，需要使用 `await` 或 `.then()` 调用
-- **错误处理**: 调用服务函数时应该使用 `try-catch` 进行错误处理
-- **类型导入**: 使用类型时，使用 `import type` 进行类型导入，例如 `import type { Transaction } from "@/lib/services/etherscan"`
+- **API Key**: 建议在环境变量中设置 `ETHERSCAN_API_KEY`
+- **服务端调用**: 所有 API 调用都应在服务端进行（Server Actions 或 API Routes）
+- **安全确认**: 查询事件时，系统会自动使用 `SAFE_CONFIRMATIONS` 个区块的延迟
+- **类型导入**: 使用 `import type` 导入类型，例如 `import type { Transaction } from "@/lib/services/etherscan"`
 
 ## 扩展指南
 
+### 添加新合约支持
+
+1. 在 `lib/config/addresses.ts` 中添加合约地址
+2. 在 `lib/abi/` 目录下创建新的 ABI 定义文件（如 `lib/abi/dai.ts`）
+3. 在 `lib/contracts/` 目录下创建合约封装文件（如 `lib/contracts/dai.ts`）
+
 ### 添加新的链支持
 
-1. 在 `lib/config/chains.ts` 中添加新的链到 `supportedChains` 数组
-2. 在 `lib/config/etherscan.ts` 中可能需要添加对应链的 API URL（如果需要）
-3. 更新相关服务函数以支持新链
+1. 在 `lib/config/chains.ts` 的 `supportedChains` 数组中添加新链
+2. 确保合约地址在新链上有效
 
-### 添加新的合约地址
+### 添加新的服务
 
-1. 在 `lib/config/contracts.ts` 中添加新的合约地址常量
-2. 如果合约支持多链，可以使用对象结构按链 ID 组织
-
-### 添加新的服务函数
-
-1. 在 `lib/services/` 目录下创建新的服务文件或扩展现有文件
-2. 使用 `callEtherscanApi` 或 `buildEtherscanApiUrl` 来调用 API
-3. 定义清晰的接口和类型
-4. 添加完整的 JSDoc 注释
+1. 在 `lib/services/` 目录下创建新的服务文件
+2. 定义清晰的接口和类型
+3. 添加完整的 JSDoc 注释

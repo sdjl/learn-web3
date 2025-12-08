@@ -31,8 +31,11 @@ export const navItems: NavItem[] = [
     ],
   },
   {
-    label: "监控",
-    children: [{ href: "/monitor/usdt-monitor", label: "USDT 监控" }],
+    label: "监听",
+    children: [
+      { href: "/monitor/usdt-monitor", label: "USDT 交易监听" },
+      { href: "/monitor/usdt-events", label: "USDT 合约事件" },
+    ],
   },
   {
     label: "合约",
