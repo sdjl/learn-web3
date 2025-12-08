@@ -7,7 +7,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Github } from "lucide-react";
 import { navItems } from "@/lib/config/navigation";
 
 export function Navigation() {
@@ -100,10 +100,20 @@ export function Navigation() {
             );
           })}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <span className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
             Learn Web3
           </span>
+          {/* GitHub 链接 */}
+          <a
+            href="https://github.com/sdjl/learn-web3"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-lg p-2 text-foreground transition hover:bg-muted"
+            title="GitHub 仓库"
+          >
+            <Github className="h-5 w-5" />
+          </a>
         </div>
       </div>
     </nav>
