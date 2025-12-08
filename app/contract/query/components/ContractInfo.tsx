@@ -1,134 +1,128 @@
 // ============================================================
-// 合约信息展示组件：显示合约的基本信息和源代码
+// 合约信息展示组件：显示合约的基本信息、状态变量和源代码
 // ============================================================
 // 作用：
-// - 展示合约的基本信息（地址、余额、是否合约等）
-// - 显示合约源代码（如果可用）
-// - 提供友好的信息展示界面
+// - 使用 Tabs 组件整合三个信息板块
+// - 协调子组件的数据获取和展示
 // ============================================================
 
-import type { ContractInfoProps } from "../types";
-import { useAccount } from "wagmi";
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BasicInfo } from "./BasicInfo";
+import { StateVariables } from "./StateVariables";
+import { SourceCode } from "./SourceCode";
+import { getContractStateVariables } from "../actions";
+import type { ContractInfoProps, StateVariable } from "../types";
 
 export function ContractInfoDisplay({ contractInfo }: ContractInfoProps) {
-  const { chain } = useAccount();
+  // 状态变量数据
+  const [stateVariables, setStateVariables] = useState<StateVariable[]>([]);
+  const [isLoadingVariables, setIsLoadingVariables] = useState(false);
+  const [variablesError, setVariablesError] = useState<string | undefined>();
+  const [hasLoadedVariables, setHasLoadedVariables] = useState(false);
+
+  // 加载状态变量
+  const loadStateVariables = useCallback(async () => {
+    // 如果没有 ABI 或者不是合约，不加载
+    if (!contractInfo.abi || !contractInfo.isContract) {
+      return;
+    }
+
+    // 如果没有 chainId 和 rpcUrl，不加载
+    if (!contractInfo.chainId || !contractInfo.rpcUrl) {
+      return;
+    }
+
+    setIsLoadingVariables(true);
+    setVariablesError(undefined);
+
+    try {
+      const result = await getContractStateVariables({
+        address: contractInfo.address,
+        chainId: contractInfo.chainId,
+        rpcUrl: contractInfo.rpcUrl,
+        abi: contractInfo.abi,
+      });
+
+      if ("error" in result) {
+        setVariablesError(result.error);
+      } else {
+        setStateVariables(result.variables);
+      }
+    } catch (error) {
+      setVariablesError(
+        error instanceof Error ? error.message : "加载状态变量失败"
+      );
+    } finally {
+      setIsLoadingVariables(false);
+      setHasLoadedVariables(true);
+    }
+  }, [contractInfo]);
+
+  // 当切换到状态变量标签时才加载数据
+  const handleTabChange = (value: string) => {
+    if (value === "variables" && !hasLoadedVariables && contractInfo.abi) {
+      loadStateVariables();
+    }
+  };
+
+  // 当合约信息变化时，重置状态
+  useEffect(() => {
+    setStateVariables([]);
+    setHasLoadedVariables(false);
+    setVariablesError(undefined);
+  }, [contractInfo.address]);
 
   return (
     <section className="space-y-6 rounded-3xl border border-border bg-card p-6 shadow-xl">
       <h2 className="text-lg font-semibold">合约信息</h2>
 
-      {/* 基本信息 */}
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-foreground">
-            合约地址
-          </label>
-          <div className="mt-1 flex items-center gap-2">
-            <code className="rounded-lg bg-muted px-3 py-2 font-mono text-sm">
-              {contractInfo.address}
-            </code>
-            {chain?.blockExplorers?.default && (
-              <a
-                href={`${chain.blockExplorers.default.url}/address/${contractInfo.address}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-primary underline hover:text-primary/80"
-              >
-                在 {chain.blockExplorers.default.name} 上查看
-              </a>
-            )}
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-foreground">
-            类型
-          </label>
-          <div className="mt-1">
-            <span
-              className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ${
-                contractInfo.isContract
-                  ? "bg-primary/10 text-primary"
-                  : "bg-muted text-muted-foreground"
-              }`}
-            >
-              {contractInfo.isContract ? "智能合约" : "普通地址"}
-            </span>
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-foreground">
-            余额
-          </label>
-          <div className="mt-1">
-            <span className="text-lg font-semibold">
-              {contractInfo.balanceFormatted}{" "}
-              {chain?.nativeCurrency?.symbol || "ETH"}
-            </span>
-          </div>
-        </div>
-
-        {/* 合约名称（如果有） */}
-        {contractInfo.contractName && (
-          <div>
-            <label className="block text-sm font-medium text-foreground">
-              合约名称
-            </label>
-            <div className="mt-1">
-              <span className="font-semibold">{contractInfo.contractName}</span>
-            </div>
-          </div>
-        )}
-
-        {/* 编译器版本（如果有） */}
-        {contractInfo.compilerVersion && (
-          <div>
-            <label className="block text-sm font-medium text-foreground">
-              编译器版本
-            </label>
-            <div className="mt-1">
-              <code className="rounded-lg bg-muted px-3 py-2 font-mono text-sm">
-                {contractInfo.compilerVersion}
-              </code>
-            </div>
-          </div>
-        )}
-
-        {/* 优化设置（如果有） */}
-        {contractInfo.optimizationUsed !== undefined && (
-          <div>
-            <label className="block text-sm font-medium text-foreground">
-              优化设置
-            </label>
-            <div className="mt-1">
-              <span
-                className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ${
-                  contractInfo.optimizationUsed
-                    ? "bg-primary/10 text-primary"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                {contractInfo.optimizationUsed ? "已优化" : "未优化"}
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 源代码（如果有） */}
-      {contractInfo.sourceCode && (
-        <div className="mt-6">
-          <label className="mb-2 block text-sm font-medium text-foreground">
+      <Tabs defaultValue="basic" onValueChange={handleTabChange}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="basic">基本信息</TabsTrigger>
+          <TabsTrigger value="variables" disabled={!contractInfo.abi}>
+            状态变量
+          </TabsTrigger>
+          <TabsTrigger value="source" disabled={!contractInfo.sourceCode}>
             源代码
-          </label>
-          <div className="mt-1 max-h-96 overflow-auto rounded-lg border border-border bg-muted p-4">
-            <pre className="whitespace-pre-wrap wrap-break-word font-mono text-xs text-foreground">
-              {contractInfo.sourceCode}
-            </pre>
-          </div>
-        </div>
-      )}
+          </TabsTrigger>
+        </TabsList>
+
+        {/* 基本信息 */}
+        <TabsContent value="basic">
+          <BasicInfo contractInfo={contractInfo} />
+        </TabsContent>
+
+        {/* 状态变量 */}
+        <TabsContent value="variables">
+          {contractInfo.abi ? (
+            <StateVariables
+              stateVariables={stateVariables}
+              isLoading={isLoadingVariables}
+              error={variablesError}
+            />
+          ) : (
+            <div className="py-8 text-center text-muted-foreground">
+              <p>无法读取状态变量</p>
+              <p className="mt-2 text-sm">
+                可能原因：合约未在 Etherscan 上验证源代码
+              </p>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* 源代码 */}
+        <TabsContent value="source">
+          <SourceCode
+            sourceCode={contractInfo.sourceCode}
+            contractName={contractInfo.contractName}
+            compilerVersion={contractInfo.compilerVersion}
+            optimizationUsed={contractInfo.optimizationUsed}
+          />
+        </TabsContent>
+      </Tabs>
     </section>
   );
 }

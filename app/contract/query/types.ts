@@ -28,6 +28,12 @@ export interface ContractInfo {
   compilerVersion?: string;
   /** 优化设置（如果从 Etherscan 获取到） */
   optimizationUsed?: boolean;
+  /** 合约 ABI（如果从 Etherscan 获取到） */
+  abi?: AbiFunction[];
+  /** 链 ID */
+  chainId?: number;
+  /** RPC URL */
+  rpcUrl?: string;
 }
 
 /**
@@ -50,6 +56,7 @@ export interface ContractSourceCodeResult {
   ContractName?: string;
   CompilerVersion?: string;
   OptimizationUsed?: string;
+  ABI?: string;
 }
 
 /**
@@ -60,6 +67,7 @@ export interface ContractSourceCodeInfo {
   contractName?: string;
   compilerVersion?: string;
   optimizationUsed?: boolean;
+  abi?: AbiFunction[];
 }
 
 /**
@@ -83,4 +91,68 @@ export interface FormProps {
 export interface ContractInfoProps {
   /** 合约信息 */
   contractInfo: ContractInfo;
+}
+
+/**
+ * 合约状态变量
+ */
+export interface StateVariable {
+  /** 变量名称 */
+  name: string;
+  /** 变量类型 */
+  type: string;
+  /** 变量值（格式化后的字符串） */
+  value: string;
+  /** 原始值 */
+  rawValue: unknown;
+}
+
+/**
+ * 合约 ABI 函数定义
+ */
+export interface AbiFunction {
+  /** 函数类型 */
+  type: "function" | "constructor" | "event" | "fallback" | "receive";
+  /** 函数名称 */
+  name?: string;
+  /** 状态可变性 */
+  stateMutability?: "pure" | "view" | "nonpayable" | "payable";
+  /** 输入参数 */
+  inputs?: Array<{ name: string; type: string }>;
+  /** 输出参数 */
+  outputs?: Array<{ name: string; type: string }>;
+}
+
+/**
+ * 基本信息组件 Props
+ */
+export interface BasicInfoProps {
+  /** 合约信息 */
+  contractInfo: ContractInfo;
+}
+
+/**
+ * 状态变量组件 Props
+ */
+export interface StateVariablesProps {
+  /** 状态变量列表 */
+  stateVariables: StateVariable[];
+  /** 是否加载中 */
+  isLoading: boolean;
+  /** 错误信息 */
+  error?: string;
+}
+
+/**
+ * 源代码组件 Props
+ */
+export interface SourceCodeProps {
+  /** 源代码 */
+  sourceCode?: string;
+  /** 合约名称 */
+  contractName?: string;
+  /** 编译器版本 */
+  compilerVersion?: string;
+  /** 是否启用优化 */
+  optimizationUsed?: boolean;
 }

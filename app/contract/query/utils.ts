@@ -3,6 +3,7 @@
 // ============================================================
 // 作用：
 // - 提供源代码解析、错误处理等工具函数
+// - 提供数据格式化函数
 // - 与主要业务逻辑分离，提高代码可维护性
 // ============================================================
 
@@ -63,4 +64,41 @@ export function parseSourceCode(sourceCode: string): string {
 
   // 单文件合约，直接返回
   return sourceCode;
+}
+
+/**
+ * 格式化状态变量的值
+ * 根据变量类型进行适当的格式化，将各种类型转换为可读的字符串
+ */
+export function formatVariableValue(value: unknown): string {
+  if (value === null || value === undefined) {
+    return "null";
+  }
+
+  // 处理 BigInt 类型：直接转换为字符串
+  if (typeof value === "bigint") {
+    return value.toString();
+  }
+
+  // 处理布尔值
+  if (typeof value === "boolean") {
+    return value ? "true" : "false";
+  }
+
+  // 处理数组
+  if (Array.isArray(value)) {
+    return JSON.stringify(value, (_, v) =>
+      typeof v === "bigint" ? v.toString() : v
+    );
+  }
+
+  // 处理对象
+  if (typeof value === "object") {
+    return JSON.stringify(value, (_, v) =>
+      typeof v === "bigint" ? v.toString() : v
+    );
+  }
+
+  // 其他类型直接转字符串
+  return String(value);
 }
