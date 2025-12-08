@@ -10,14 +10,10 @@ lib/
 │   ├── types.ts          # ABI 相关类型定义
 │   ├── utils.ts          # ABI 工具函数（使用 viem）
 │   ├── parser.ts         # 事件日志解析器（使用 viem）
-│   └── usdt.ts           # USDT 合约 ABI 定义
 ├── config/          # 配置文件
 │   ├── addresses.ts      # 合约地址配置
 │   ├── chains.ts         # 链配置
 │   ├── etherscan.ts      # Etherscan API 配置
-│   └── navigation.ts     # 导航配置
-├── contracts/       # 合约高层封装
-│   └── usdt.ts           # USDT 合约封装
 ├── services/        # 第三方服务封装
 │   └── etherscan.ts      # Etherscan API 服务
 └── utils.ts         # 通用工具函数（Tailwind CSS）
@@ -253,38 +249,6 @@ for (const event of events) {
 
 ---
 
-### usdt.ts
-
-**文件路径**: `lib/abi/usdt.ts`
-
-**作用**: 
-- 定义 USDT 合约的事件 ABI
-- 提供 USDT 事件名称类型
-
-**导出内容**:
-
-```typescript
-/**
- * USDT 合约事件 ABI
- * 包含 USDT 合约的所有事件，按发生频率从高到低排序
- */
-export const USDT_EVENT_ABI: readonly EventAbiItem[];
-
-/**
- * USDT 事件名称列表
- */
-export const USDT_EVENT_NAMES: readonly string[];
-
-/**
- * USDT 事件名称类型
- */
-export type USDTEventName = "Transfer" | "Approval" | "Issue" | "Redeem" | 
-  "AddedBlackList" | "RemovedBlackList" | "DestroyedBlackFunds" | 
-  "Params" | "Pause" | "Unpause" | "Deprecate";
-```
-
----
-
 ## Config 配置文件 (lib/config/)
 
 ### addresses.ts
@@ -353,114 +317,6 @@ export const ETHERSCAN_API_V2_URL = "https://api.etherscan.io/v2/api";
  * 从环境变量 ETHERSCAN_API_KEY 读取
  */
 export function getEtherscanApiKey(): string | undefined;
-```
-
----
-
-### navigation.ts
-
-**文件路径**: `lib/config/navigation.ts`
-
-**作用**: 
-- 集中管理应用的导航菜单
-
-**导出内容**:
-
-```typescript
-export interface NavItem {
-  href?: string;       // 链接地址，不提供则为分类标题
-  label: string;       // 显示文本
-  children?: NavItem[]; // 二级菜单
-}
-
-export const navItems: NavItem[];
-```
-
----
-
-## Contracts 合约封装 (lib/contracts/)
-
-### usdt.ts
-
-**文件路径**: `lib/contracts/usdt.ts`
-
-**作用**: 
-- 提供 USDT 合约的高层封装函数
-- 封装交易查询和事件查询
-
-**导出类型**:
-
-```typescript
-/**
- * USDT 事件查询结果
- */
-export interface USDTEventsResult {
-  response: EtherscanApiResponse<EventLog[]>;
-  fromBlock: number;       // 查询的起始区块
-  currentBlock: number;    // 当前最新区块
-  confirmations: number;   // 延迟的区块数
-}
-```
-
-**导出函数**:
-
-#### getUSDTTransactions
-
-```typescript
-/**
- * 获取 USDT 合约的代币交易记录
- * 
- * @param chainId - 链 ID，默认为 1（以太坊主网）
- * @param options - 可选查询参数
- * @returns USDT 交易列表
- */
-export async function getUSDTTransactions(
-  chainId?: number,
-  options?: {
-    startBlock?: string;
-    endBlock?: string;
-    page?: string;
-    offset?: string;
-    sort?: "asc" | "desc";
-  }
-): Promise<EtherscanApiResponse<Transaction[]>>;
-```
-
-#### getUSDTEvents
-
-```typescript
-/**
- * 获取 USDT 合约的事件日志
- * 自动使用安全区块号以确保数据已确认
- * 
- * @param chainId - 链 ID，默认为 1（以太坊主网）
- * @param options - 可选查询参数
- * @returns 包含事件日志和区块信息的结果对象
- */
-export async function getUSDTEvents(
-  chainId?: number,
-  options?: {
-    eventName?: USDTEventName;
-    fromBlock?: string;
-    toBlock?: string;
-    page?: string;
-    offset?: string;
-  }
-): Promise<USDTEventsResult>;
-```
-
-**使用示例**:
-
-```typescript
-import { getUSDTEvents } from "@/lib/contracts/usdt";
-import { parseEventLogs } from "@/lib/abi/parser";
-import { USDT_EVENT_ABI } from "@/lib/abi/usdt";
-
-// 获取最近的 Transfer 事件
-const result = await getUSDTEvents(1, { eventName: "Transfer", offset: "10" });
-const events = parseEventLogs(result.response.result, USDT_EVENT_ABI);
-
-console.log(`显示 ${result.confirmations} 个区块前的数据`);
 ```
 
 ---
@@ -625,56 +481,3 @@ export async function getContractEventLogs(
   }
 ): Promise<EtherscanApiResponse<EventLog[]>>;
 ```
-
----
-
-## 通用工具 (lib/utils.ts)
-
-**文件路径**: `lib/utils.ts`
-
-**作用**: 
-- 提供 Tailwind CSS 类名合并工具
-
-**导出函数**:
-
-```typescript
-import { cn } from "@/lib/utils";
-
-// 合并多个 class 名称，自动处理 Tailwind 冲突
-const className = cn("px-4 py-2", isActive && "bg-blue-500", "text-white");
-```
-
----
-
-## 使用建议
-
-1. **使用 viem 库函数**: ABI 相关的功能已使用 viem 实现，避免重复造轮子
-2. **优先使用高层封装**: 使用 `lib/contracts/usdt.ts` 而不是直接调用 `lib/services/etherscan.ts`
-3. **类型安全**: 所有函数都有完整的 TypeScript 类型定义
-4. **错误处理**: 服务函数会自动处理常见错误，但仍需在调用处进行错误处理
-
-## 注意事项
-
-- **API Key**: 建议在环境变量中设置 `ETHERSCAN_API_KEY`
-- **服务端调用**: 所有 API 调用都应在服务端进行（Server Actions 或 API Routes）
-- **安全确认**: 查询事件时，系统会自动使用 `SAFE_CONFIRMATIONS` 个区块的延迟
-- **类型导入**: 使用 `import type` 导入类型，例如 `import type { Transaction } from "@/lib/services/etherscan"`
-
-## 扩展指南
-
-### 添加新合约支持
-
-1. 在 `lib/config/addresses.ts` 中添加合约地址
-2. 在 `lib/abi/` 目录下创建新的 ABI 定义文件（如 `lib/abi/dai.ts`）
-3. 在 `lib/contracts/` 目录下创建合约封装文件（如 `lib/contracts/dai.ts`）
-
-### 添加新的链支持
-
-1. 在 `lib/config/chains.ts` 的 `supportedChains` 数组中添加新链
-2. 确保合约地址在新链上有效
-
-### 添加新的服务
-
-1. 在 `lib/services/` 目录下创建新的服务文件
-2. 定义清晰的接口和类型
-3. 添加完整的 JSDoc 注释
