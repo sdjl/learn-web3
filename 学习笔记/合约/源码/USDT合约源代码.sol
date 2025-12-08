@@ -1,5 +1,6 @@
 /**
- *提交至 Etherscan.io 进行验证，日期：2017-11-28
+ * 提交至 Etherscan.io 进行验证，日期：2017-11-28
+ * USDT 不是加密货币，而是区块链上的电子借据（IOU）。
  */
 
 pragma solidity ^0.4.17;
@@ -212,7 +213,7 @@ contract StandardToken is BasicToken, ERC20 {
 
     /**
      * @dev 从一个地址转账代币到另一个地址（使用授权额度）
-     * @param _from 代币的来源地址（被授权者）
+     * @param _from 代币的来源地址（所有者）
      * @param _to 代币的目标地址
      * @param _value 要转账的代币数量
      * 调用者必须事先获得 _from 地址的授权
@@ -403,19 +404,67 @@ contract BlackList is Ownable, BasicToken {
 /**
  * @title UpgradedStandardToken
  * @dev 升级后的标准代币接口
- * 这些方法由旧版合约调用，并且必须确保 msg.sender 是旧合约地址
- * 用于合约升级时保持向后兼容性
+ *
+ * 【为什么需要这个功能】
+ * 在区块链上，智能合约一旦部署就无法修改。但随着时间推移，可能需要修复bug或添加新功能。
+ * USDT采用了"代理模式"来实现合约升级：
+ * 1. 旧合约（TetherToken）保留原地址，用户继续与它交互
+ * 2. 新合约（UpgradedStandardToken）部署到新地址，包含新的逻辑
+ * 3. 旧合约将所有操作转发到新合约执行
+ * 这样用户无需更换地址，就能使用升级后的功能
+ *
+ * 【实现原理】
+ * 这是一个接口合约（interface），定义了新合约必须实现的方法。
+ * 旧合约通过这些方法将用户的操作转发给新合约处理。
+ * 所有方法都带有"ByLegacy"后缀，表示"由旧版合约调用"。
+ *
+ * 【安全机制】
+ * 新合约的实现必须验证 msg.sender 是旧合约地址，防止其他人直接调用这些方法。
+ * 这确保了只有通过旧合约的正规流程才能操作用户资金。
  */
 contract UpgradedStandardToken is StandardToken {
-    // 这些方法由旧版合约调用
-    // 它们必须确保 msg.sender 是旧合约地址
+    /**
+     * @dev 由旧合约调用的转账方法
+     * @param from 发送者地址（原始调用者）
+     * @param to 接收者地址
+     * @param value 转账金额
+     *
+     * 【调用流程】
+     * 1. 用户调用旧合约的 transfer(to, value)
+     * 2. 旧合约检测到已升级（deprecated = true）
+     * 3. 旧合约调用新合约的 transferByLegacy(msg.sender, to, value)
+     * 4. 新合约验证调用者是旧合约，然后执行转账
+     *
+     * 【参数说明】
+     * - from: 真正的发送者（用户地址），由旧合约传入
+     * - to: 接收者地址
+     * - value: 转账金额
+     *
+     * 【实现要求】
+     * 新合约必须检查 msg.sender == 旧合约地址，确保安全性
+     */
     function transferByLegacy(address from, address to, uint value) public;
+
+    /**
+     * @dev 由旧合约调用的授权转账方法
+     * @param sender 原始调用者（执行转账的人）
+     * @param from 代币所有者地址（被转走代币的账户）
+     * @param spender 授权地址（这个参数在标准实现中可能未使用，保留用于兼容性）
+     * @param value 转账金额
+     */
     function transferFromByLegacy(
         address sender,
         address from,
         address spender,
         uint value
     ) public;
+
+    /**
+     * @dev 由旧合约调用的授权方法
+     * @param from 授权者地址（代币所有者）
+     * @param spender 被授权者地址（可以转走代币的人）
+     * @param value 授权金额
+     */
     function approveByLegacy(address from, address spender, uint value) public;
 }
 
@@ -465,6 +514,10 @@ contract TetherToken is Pausable, StandardToken, BlackList {
         if (deprecated) {
             // 如果合约已弃用，调用升级后合约的 transferByLegacy 方法
             return
+                // 调用升级后合约的 transferByLegacy 方法
+                // 这里的UpgradedStandardToken不是构造函数，而是把地址类型转换为UpgradedStandardToken类型
+                // UpgradedStandardToken(upgradedAddress) 返回的是一个合约实例的引用，地址是upgradedAddress
+                // 相当于告诉编译器："地址 upgradedAddress 上部署的合约遵循 UpgradedStandardToken 接口"
                 UpgradedStandardToken(upgradedAddress).transferByLegacy(
                     msg.sender,
                     _to,
