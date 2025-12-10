@@ -12,6 +12,8 @@ alwaysApply: false
 2. **辅助工具函数**：数据格式化、字符串处理、类型转换等
 3. **可跳过的实现细节**：与 Web3 核心学习内容关系不大的代码
 
+**重要**：`utils.ts` 只存放常量和函数，**不存放类型定义**。所有类型定义（`interface`、`type`）必须放在 `types.ts` 文件中。
+
 ## 设计原则
 
 ### 1. 分离核心逻辑和辅助代码
@@ -24,6 +26,9 @@ alwaysApply: false
 - 字符串处理函数（如 `truncateAddress`、`parseSourceCode`）
 - 类型转换函数（如 `hexToNumber`、`weiToEth`）
 - 其他与 Web3 核心概念无关的辅助代码
+
+**不应该放在 utils.ts 的内容：**
+- 类型定义（`interface`、`type`）→ 放在 `types.ts`
 
 **应该保留在 actions.ts 的内容：**
 - 与区块链交互的核心逻辑

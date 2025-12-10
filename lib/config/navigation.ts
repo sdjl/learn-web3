@@ -46,4 +46,5 @@ export const navItems: NavItem[] = [
     label: "工具",
     children: [{ href: "/tools/chain-balance", label: "链切换" }],
   },
+  { href: "/contract/source-code", label: "合约代码解读" },
 ];
