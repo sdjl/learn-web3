@@ -26,9 +26,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TOKENS, TOKEN_INFO } from "@/lib/config/tokens";
 
-// USDT 代币精度（6 位小数）
-const USDT_DECIMALS = 6;
+// USDT 代币精度
+const USDT_DECIMALS = TOKEN_INFO[TOKENS.USDT].decimals;
 
 /**
  * 格式化时间戳为可读时间
@@ -96,7 +97,8 @@ function renderEventParams(event: ParsedUSDTEvent): React.ReactNode {
           <div className="text-sm">
             <span className="text-muted-foreground">金额:</span>{" "}
             <span className="font-medium">
-              {parseFloat(formatUSDT(params.value)).toLocaleString()} USDT
+              {parseFloat(formatUSDT(params.value)).toLocaleString()}{" "}
+              {TOKENS.USDT}
             </span>
           </div>
         </div>
@@ -130,7 +132,8 @@ function renderEventParams(event: ParsedUSDTEvent): React.ReactNode {
           <div className="text-sm">
             <span className="text-muted-foreground">授权额度:</span>{" "}
             <span className="font-medium">
-              {parseFloat(formatUSDT(params.value)).toLocaleString()} USDT
+              {parseFloat(formatUSDT(params.value)).toLocaleString()}{" "}
+              {TOKENS.USDT}
             </span>
           </div>
         </div>
@@ -142,7 +145,8 @@ function renderEventParams(event: ParsedUSDTEvent): React.ReactNode {
         <div className="text-sm">
           <span className="text-muted-foreground">数量:</span>{" "}
           <span className="font-medium">
-            {parseFloat(formatUSDT(params.amount)).toLocaleString()} USDT
+            {parseFloat(formatUSDT(params.amount)).toLocaleString()}{" "}
+            {TOKENS.USDT}
           </span>
         </div>
       );
@@ -180,7 +184,8 @@ function renderEventParams(event: ParsedUSDTEvent): React.ReactNode {
           <div className="text-sm">
             <span className="text-muted-foreground">销毁金额:</span>{" "}
             <span className="font-medium">
-              {parseFloat(formatUSDT(params._balance)).toLocaleString()} USDT
+              {parseFloat(formatUSDT(params._balance)).toLocaleString()}{" "}
+              {TOKENS.USDT}
             </span>
           </div>
         </div>
@@ -211,7 +216,8 @@ function renderEventParams(event: ParsedUSDTEvent): React.ReactNode {
           <div>
             <span className="text-muted-foreground">最大费用:</span>{" "}
             <span className="font-medium">
-              {parseFloat(formatUSDT(params.maxFee)).toLocaleString()} USDT
+              {parseFloat(formatUSDT(params.maxFee)).toLocaleString()}{" "}
+              {TOKENS.USDT}
             </span>
           </div>
         </div>

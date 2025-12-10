@@ -13,7 +13,8 @@
 import { useState } from "react";
 import { isAddress } from "viem";
 import { supportedChains } from "@/lib/config/chains";
-import { USDT_CONTRACT_ADDRESS } from "@/lib/config/addresses";
+import { getTokenAddress } from "@/lib/config/addresses";
+import { TOKENS } from "@/lib/config/tokens";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
 import type { FormProps } from "../types";
@@ -31,6 +32,19 @@ export function Form({ onQuery }: FormProps) {
   const selectedChain =
     supportedChains.find((c) => c.id.toString() === selectedChainId) ||
     supportedChains[0];
+
+  // 处理使用 USDT 地址按钮点击
+  const handleUseUSDTAddress = () => {
+    const usdtAddress = getTokenAddress(selectedChain.id, TOKENS.USDT);
+    if (usdtAddress) {
+      setAddress(usdtAddress);
+      setError(null);
+    } else {
+      setError(
+        `请在 lib/config/addresses.ts 文件中添加 ${selectedChain.name} 网络的 ${TOKENS.USDT} 地址配置`
+      );
+    }
+  };
 
   // 处理查询
   const handleQuery = async (e: React.FormEvent) => {
@@ -94,6 +108,7 @@ export function Form({ onQuery }: FormProps) {
             onValueChange={(value) => {
               if (value) {
                 setSelectedChainId(value);
+                setAddress(""); // 切换网络时清空地址，避免不同网络的地址混用
                 setError(null);
               }
             }}
@@ -125,10 +140,7 @@ export function Form({ onQuery }: FormProps) {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => {
-                setAddress(USDT_CONTRACT_ADDRESS);
-                setError(null);
-              }}
+              onClick={handleUseUSDTAddress}
               disabled={isLoading}
             >
               使用 USDT 地址

@@ -16,14 +16,14 @@
 
 ## 技术栈
 
-- **框架**: [Next.js](https://nextjs.org/) 16 + [React](https://react.dev/) 19
-- **语言**: [TypeScript](https://www.typescriptlang.org/)
-- **样式**: [Tailwind CSS](https://tailwindcss.com/) 4
+- **框架**: Next.js 16 + React 19
+- **语言**: TypeScript
+- **样式**: Tailwind CSS 4
 - **Web3 库**:
-  - [wagmi](https://wagmi.sh/) - React Hooks for Ethereum
-  - [viem](https://viem.sh/) - TypeScript Interface for Ethereum
-  - [RainbowKit](https://www.rainbowkit.com/) - 钱包连接 UI 组件
-- **开发工具**: [Cursor](https://cursor.sh/) 编辑器
+  - wagmi - React Hooks for Ethereum
+  - viem - TypeScript Interface for Ethereum
+  - RainbowKit - 钱包连接 UI 组件
+- **开发工具**: Cursor 编辑器
 
 ## 功能特性
 

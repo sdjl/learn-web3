@@ -251,20 +251,112 @@ for (const event of events) {
 
 ## Config 配置文件 (lib/config/)
 
-### addresses.ts
+### tokens.ts
 
-**文件路径**: `lib/config/addresses.ts`
+**文件路径**: `lib/config/tokens.ts`
 
 **作用**: 
-- 集中管理所有智能合约地址
+- 集中管理所有代币名称常量
+- 提供类型安全的代币名称引用
+- 避免代币名称拼写错误
+- 方便 TypeScript 类型检查
 
 **导出内容**:
 
 ```typescript
 /**
- * USDT 合约地址（以太坊主网）
+ * 代币符号常量
+ * 使用 as const 确保类型安全
  */
-export const USDT_CONTRACT_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+export const TOKENS = {
+  USDT: "USDT",
+  ETH: "ETH",
+} as const;
+
+/**
+ * 代币符号类型
+ */
+export type TokenSymbol = (typeof TOKENS)[keyof typeof TOKENS];
+
+/**
+ * 代币信息接口
+ */
+export interface TokenInfo {
+  symbol: TokenSymbol;
+  name: string;
+  decimals: number;
+}
+
+/**
+ * 代币信息配置
+ */
+export const TOKEN_INFO = {
+  [TOKENS.USDT]: { symbol: TOKENS.USDT, name: "Tether USD", decimals: 6 },
+  [TOKENS.ETH]: { symbol: TOKENS.ETH, name: "Ether", decimals: 18 },
+} as const satisfies Record<TokenSymbol, TokenInfo>;
+
+/**
+ * 获取代币信息
+ */
+export function getTokenInfo(symbol: TokenSymbol): TokenInfo;
+```
+
+**使用示例**:
+
+```typescript
+import { TOKENS, TOKEN_INFO, getTokenInfo } from "@/lib/config/tokens";
+
+// 使用代币符号常量
+const symbol = TOKENS.USDT; // "USDT"
+
+// 获取代币精度
+const decimals = TOKEN_INFO[TOKENS.USDT].decimals; // 6
+
+// 使用函数获取代币信息
+const info = getTokenInfo(TOKENS.ETH);
+console.log(info.decimals); // 18
+```
+
+---
+
+### addresses.ts
+
+**文件路径**: `lib/config/addresses.ts`
+
+**作用**: 
+- 按网络组织所有智能合约地址
+- 支持多链部署的合约地址
+
+**导出内容**:
+
+```typescript
+/**
+ * 根据链 ID 和代币符号获取合约地址
+ * 
+ * @param chainId - 区块链的 Chain ID
+ * @param tokenSymbol - 代币符号（如 TOKENS.USDT）
+ * @returns 合约地址，如果配置不存在则返回空字符串
+ */
+export function getTokenAddress(chainId: number, tokenSymbol: TokenSymbol): string;
+```
+
+**使用示例**:
+
+```typescript
+import { getTokenAddress } from "@/lib/config/addresses";
+import { TOKENS } from "@/lib/config/tokens";
+
+// 获取以太坊主网上的 USDT 地址
+const address = getTokenAddress(1, TOKENS.USDT);
+// 返回: "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+
+// 获取 Sepolia 测试网上的 USDT 地址
+const sepoliaAddress = getTokenAddress(11155111, TOKENS.USDT);
+// 返回: "0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0"
+
+// 获取不存在的配置
+const notFound = getTokenAddress(999, TOKENS.USDT);
+// 返回: ""
 ```
 
 ---

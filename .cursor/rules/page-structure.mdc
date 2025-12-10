@@ -97,3 +97,38 @@ export default function PageName() {
 - ✅ `types.ts` **必须**和 `page.tsx` 放在**同一个目录**中
 - ✅ 类型定义**必须**使用 `export` 导出，方便其他文件导入
 - ❌ 不在组件文件或 actions 文件中直接定义类型（除非是组件内部使用的私有类型）
+
+## 代币名称使用规范
+
+### 1. 必须使用 TOKENS 常量
+
+**重要**：在页面中使用代币名称（如 USDT、ETH）时，**禁止**直接写字符串，**必须**从 `lib/config/tokens.ts` 导入 `TOKENS` 常量使用。
+
+**要求：**
+- ✅ 使用 `TOKENS.USDT` 而不是 `"USDT"`
+- ✅ 使用 `TOKENS.ETH` 而不是 `"ETH"`
+- ✅ 需要代币精度时，使用 `TOKEN_INFO[TOKENS.USDT].decimals`
+
+**正确示例：**
+
+```typescript
+import { TOKENS, TOKEN_INFO } from "@/lib/config/tokens";
+
+// 显示代币符号
+<span>{TOKENS.USDT}</span>
+
+// 获取代币精度
+const decimals = TOKEN_INFO[TOKENS.USDT].decimals;
+
+// 动态文本
+const message = `获取 ${TOKENS.USDT} 交易数据失败`;
+```
+
+**错误示例：**
+
+```typescript
+// ❌ 错误：直接使用字符串
+<span>USDT</span>
+const decimals = 6; // 硬编码精度
+const message = "获取 USDT 交易数据失败";
+```

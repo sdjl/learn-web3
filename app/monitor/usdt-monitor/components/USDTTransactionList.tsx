@@ -19,9 +19,10 @@ import type {
   EtherscanApiResponse,
 } from "@/lib/services/etherscan";
 import { TransactionList as CommonTransactionList } from "@/components/transaction/TransactionList";
+import { TOKENS, TOKEN_INFO } from "@/lib/config/tokens";
 
-// USDT 代币精度（6 位小数）
-const USDT_DECIMALS = 6;
+// USDT 代币精度
+const USDT_DECIMALS = TOKEN_INFO[TOKENS.USDT].decimals;
 
 export function USDTTransactionList() {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -68,22 +69,24 @@ export function USDTTransactionList() {
   return (
     <CommonTransactionList
       transactions={data?.result || []}
-      title="USDT 最近交易记录"
+      title={`${TOKENS.USDT} 最近交易记录`}
       isLoading={isLoading}
       error={error instanceof Error ? error : null}
-      loadingText="加载 USDT 交易数据中..."
-      emptyText="暂无 USDT 交易记录"
+      loadingText={`加载 ${TOKENS.USDT} 交易数据中...`}
+      emptyText={`暂无 ${TOKENS.USDT} 交易记录`}
       errorText={
-        error instanceof Error ? error.message : "获取 USDT 交易数据失败"
+        error instanceof Error
+          ? error.message
+          : `获取 ${TOKENS.USDT} 交易数据失败`
       }
       onRefresh={handleRefresh}
       formatValue={formatValue}
-      currencySymbol="USDT"
+      currencySymbol={TOKENS.USDT}
       formatFee={formatFee}
-      feeCurrencySymbol="ETH"
+      feeCurrencySymbol={TOKENS.ETH}
       blockExplorerUrl="https://etherscan.io"
       itemProps={{
-        typeLabel: "USDT 转账",
+        typeLabel: `${TOKENS.USDT} 转账`,
         showBothAddresses: true,
         showSeconds: true,
       }}

@@ -10,10 +10,12 @@
 //
 // 支持的网络：
 // - 以太坊主网（chainId = 1）
-// - 其他 EVM 兼容链（需确保合约地址正确）
+// - Sepolia 测试网（chainId = 11155111）
+// - 其他 EVM 兼容链（需在 lib/config/addresses.ts 中配置合约地址）
 // ============================================================
 
-import { USDT_CONTRACT_ADDRESS } from "@/lib/config/addresses";
+import { getTokenAddress } from "@/lib/config/addresses";
+import { TOKENS } from "@/lib/config/tokens";
 import { USDT_EVENT_ABI, type USDTEventName } from "@/lib/abi/usdt";
 import { buildEventTopicsMap } from "@/lib/abi/utils";
 import {
@@ -60,6 +62,7 @@ export interface USDTEventsResult {
  * @param options.offset - 每页记录数
  * @param options.sort - 排序方式："asc" 或 "desc"
  * @returns USDT 交易列表
+ * @throws 如果该网络未配置 USDT 地址，则抛出错误
  *
  * @example
  * const result = await getUSDTTransactions(1, { offset: "10", sort: "desc" });
@@ -75,9 +78,16 @@ export async function getUSDTTransactions(
     sort?: "asc" | "desc";
   }
 ): Promise<EtherscanApiResponse<Transaction[]>> {
-  return getTransactions(USDT_CONTRACT_ADDRESS, chainId, {
+  const usdtAddress = getTokenAddress(chainId, TOKENS.USDT);
+  if (!usdtAddress) {
+    throw new Error(
+      `请在 lib/config/addresses.ts 文件中添加链 ID ${chainId} 的 ${TOKENS.USDT} 地址配置`
+    );
+  }
+
+  return getTransactions(usdtAddress, chainId, {
     type: "token",
-    contractAddress: USDT_CONTRACT_ADDRESS,
+    contractAddress: usdtAddress,
     ...options,
   });
 }
@@ -99,6 +109,7 @@ export async function getUSDTTransactions(
  * @param options.page - 分页页码
  * @param options.offset - 每页记录数
  * @returns 包含事件日志和区块信息的结果对象
+ * @throws 如果该网络未配置 USDT 地址，则抛出错误
  *
  * @example
  * // 获取最近的 Transfer 事件
@@ -116,6 +127,13 @@ export async function getUSDTEvents(
     offset?: string;
   }
 ): Promise<USDTEventsResult> {
+  const usdtAddress = getTokenAddress(chainId, TOKENS.USDT);
+  if (!usdtAddress) {
+    throw new Error(
+      `请在 lib/config/addresses.ts 文件中添加链 ID ${chainId} 的 ${TOKENS.USDT} 地址配置`
+    );
+  }
+
   // 获取安全的区块号
   const { safeBlock, currentBlock } = await getSafeBlockNumber(chainId);
 
@@ -129,7 +147,7 @@ export async function getUSDTEvents(
     topic0 = topicsMap[options.eventName];
   }
 
-  const response = await getContractEventLogs(USDT_CONTRACT_ADDRESS, chainId, {
+  const response = await getContractEventLogs(usdtAddress, chainId, {
     topic0,
     fromBlock,
     toBlock: options?.toBlock,
