@@ -121,3 +121,39 @@ export const USDT_EVENT_NAMES = [
  * USDT 事件名称类型
  */
 export type USDTEventName = (typeof USDT_EVENT_NAMES)[number];
+
+// ============================================================
+// USDT 合约函数 ABI
+// ============================================================
+
+/**
+ * USDT 合约的 transfer 和 approve 函数 ABI
+ *
+ * 这两个是 ERC20 代币最常用的函数：
+ * - transfer: 将代币从自己的地址转给其他地址
+ * - approve: 授权其他地址（如 DEX 合约）可以花费自己的代币
+ *
+ * 使用 `as const` 确保类型推断正确，让 Viem 的 encodeFunctionData 能正确推断参数类型
+ */
+export const USDT_FUNCTION_ABI = [
+  {
+    name: "transfer",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "to", type: "address" },
+      { name: "value", type: "uint256" },
+    ],
+    outputs: [],
+  },
+  {
+    name: "approve",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "spender", type: "address" },
+      { name: "value", type: "uint256" },
+    ],
+    outputs: [],
+  },
+] as const;

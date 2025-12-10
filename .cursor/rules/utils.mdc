@@ -1,0 +1,187 @@
+---
+globs: app/**/utils.ts,app/**/actions.ts
+alwaysApply: false
+---
+# 工具函数文件编写规范
+
+## 文件定位
+
+`utils.ts` 是页面的辅助文件，用于存放：
+
+1. **页面常量**：配置值、固定地址、魔法数字等
+2. **辅助工具函数**：数据格式化、字符串处理、类型转换等
+3. **可跳过的实现细节**：与 Web3 核心学习内容关系不大的代码
+
+## 设计原则
+
+### 1. 分离核心逻辑和辅助代码
+
+本项目是一个学习项目，读者的目标是学习 Web3 开发。`utils.ts` 的作用是将「可以跳过」的代码从核心文件中分离出来，让读者能专注于重点内容。
+
+**应该放在 utils.ts 的内容：**
+- 常量定义（如链 ID、合约地址、配置值）
+- 数据格式化函数（如 `formatValue`、`formatDate`）
+- 字符串处理函数（如 `truncateAddress`、`parseSourceCode`）
+- 类型转换函数（如 `hexToNumber`、`weiToEth`）
+- 其他与 Web3 核心概念无关的辅助代码
+
+**应该保留在 actions.ts 的内容：**
+- 与区块链交互的核心逻辑
+- API 调用和数据获取
+- 合约函数编码和解码
+- 更多与 `web3` 核心逻辑相关的代码
+
+### 2. 简化注释
+
+`utils.ts` 中的代码注释可以相对简单，因为这些代码不是学习重点。只需要：
+- 说明函数的用途
+- 说明参数和返回值
+- 不需要详细解释实现原理
+
+## 文件头部注释
+
+每个 `utils.ts` 文件必须包含头部注释，说明这是辅助文件：
+
+```typescript
+// ============================================================
+// [功能名称] 工具函数和常量
+// ============================================================
+// 作用：
+// - [作用1]
+// - [作用2]
+//
+// 说明：
+// 这些常量和工具函数与 Web3 核心开发逻辑关系不大，
+// 读者可以跳过本文件，专注于 actions.ts 中的核心实现。
+// ============================================================
+```
+
+## 常量定义规范
+
+### 1. 使用 JSDoc 注释说明常量用途
+
+```typescript
+/**
+ * 持有大量 USDT 的地址，用于 Gas 估算
+ *
+ * 为什么需要这个地址？
+ * - eth_estimateGas 会模拟执行交易
+ * - 对于代币转账，如果 from 地址没有足够余额，模拟会失败
+ * - 使用一个已知持有大量 USDT 的地址可以确保模拟成功
+ */
+export const USDT_HOLDER_ADDRESS = "0xF977814e90dA44bFA03b6295A0616a897441aceC";
+
+/** 以太坊主网 Chain ID */
+export const MAINNET_CHAIN_ID = 1;
+```
+
+### 2. 常量命名规范
+
+- 使用 `UPPER_SNAKE_CASE` 命名
+- 名称要能表达常量的用途
+
+## 工具函数规范
+
+### 1. 函数注释
+
+工具函数使用简单的 JSDoc 注释即可：
+
+```typescript
+/**
+ * 格式化状态变量的值为可读字符串
+ * 
+ * @param value - 要格式化的值（支持 BigInt、布尔、数组、对象等类型）
+ * @returns 格式化后的字符串
+ */
+export function formatVariableValue(value: unknown): string {
+  // 实现...
+}
+```
+
+### 2. 不需要详细解释实现
+
+工具函数的实现细节不是学习重点，不需要像 `actions.ts` 那样添加步骤注释：
+
+```typescript
+// ✅ 简单注释即可
+export function parseSourceCode(sourceCode: string): string {
+  if (sourceCode.startsWith("{{") || sourceCode.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(sourceCode);
+      // ...处理逻辑
+    } catch {
+      return sourceCode;
+    }
+  }
+  return sourceCode;
+}
+
+// ❌ 不需要这样详细的步骤注释
+export function parseSourceCode(sourceCode: string): string {
+  // ============================================================
+  // 步骤 1：检查是否为 JSON 格式
+  // ============================================================
+  // ...
+}
+```
+
+## 完整示例
+
+```typescript
+// ============================================================
+// 合约查询工具函数和常量
+// ============================================================
+// 作用：
+// - 提供源代码解析函数
+// - 提供数据格式化函数
+//
+// 说明：
+// 这些常量和工具函数与 Web3 核心开发逻辑关系不大，
+// 读者可以跳过本文件，专注于 actions.ts 中的核心实现。
+// ============================================================
+
+/**
+ * 解析合约源代码（处理单文件和多文件合约）
+ * 
+ * @param sourceCode - 原始源代码字符串
+ * @returns 解析后的源代码
+ */
+export function parseSourceCode(sourceCode: string): string {
+  if (sourceCode.startsWith("{{") || sourceCode.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(sourceCode);
+      if (typeof parsed === "object" && parsed !== null) {
+        return extractMultiFileSources(parsed).join("\n\n");
+      }
+    } catch {
+      // 解析失败，返回原始字符串
+    }
+  }
+  return sourceCode;
+}
+
+/**
+ * 格式化状态变量的值为可读字符串
+ * 
+ * @param value - 要格式化的值
+ * @returns 格式化后的字符串
+ */
+export function formatVariableValue(value: unknown): string {
+  if (value === null || value === undefined) return "null";
+  if (typeof value === "bigint") return value.toString();
+  if (typeof value === "boolean") return value ? "true" : "false";
+  if (typeof value === "object") {
+    return JSON.stringify(value, (_, v) => 
+      typeof v === "bigint" ? v.toString() : v
+    );
+  }
+  return String(value);
+}
+```
+
+## 注意事项
+
+1. **不要过度拆分**：只有确实「可以跳过」的代码才放到 `utils.ts`
+2. **保持文件简洁**：`utils.ts` 应该是辅助文件，不应该变得很大
+3. **必须导出**：所有常量和函数都要使用 `export` 导出
+4. **类型定义放 types.ts**：`utils.ts` 只放常量和函数，类型定义放在 `types.ts`

@@ -201,6 +201,21 @@ export async function callEtherscanApi<T = unknown>(
 
   const data = await response.json();
 
+  // 处理 JSON-RPC 格式的响应（如 eth_estimateGas、eth_blockNumber 等 proxy 模块的接口）
+  // JSON-RPC 格式: { jsonrpc: "2.0", id: 1, result: "0x..." } 或 { jsonrpc: "2.0", id: 1, error: { code: -32000, message: "..." } }
+  if (data.jsonrpc) {
+    if (data.error) {
+      console.error("Etherscan JSON-RPC 错误响应:", data);
+      throw new Error(data.error.message || "Etherscan API 调用失败");
+    }
+    // 将 JSON-RPC 格式转换为标准响应格式
+    return {
+      status: "1",
+      message: "OK",
+      result: data.result as T,
+    };
+  }
+
   // 处理 API 返回的错误状态
   if (data.status === "0") {
     // "No transactions found" 和 "No records found" 是正常情况，返回空数组
@@ -440,4 +455,147 @@ export async function getContractEventLogs(
     message: response.message,
     result,
   };
+}
+
+// ============================================================
+// Gas 相关函数
+// ============================================================
+
+/**
+ * Gas Oracle 返回的数据结构
+ *
+ * EIP-1559 之后，SafeGasPrice、ProposeGasPrice、FastGasPrice 表示优先费用（priority fee），
+ * suggestBaseFee 表示建议的基础费用。
+ */
+export interface GasOracleResult {
+  /** 最新区块号 */
+  LastBlock: string;
+  /** 安全的 Gas 价格（Gwei），适合不急的交易 */
+  SafeGasPrice: string;
+  /** 建议的 Gas 价格（Gwei），平均确认时间 */
+  ProposeGasPrice: string;
+  /** 快速的 Gas 价格（Gwei），快速确认 */
+  FastGasPrice: string;
+  /** 建议的基础费用（Gwei） */
+  suggestBaseFee: string;
+  /** Gas 使用率，表示网络拥堵程度 */
+  gasUsedRatio: string;
+}
+
+/**
+ * 获取当前 Gas 价格预言机数据
+ *
+ * 返回当前网络的 Gas 价格建议，包括安全、建议和快速三档价格。
+ * 这些价格基于网络拥堵情况动态计算。
+ *
+ * @param chainId - 区块链的 Chain ID（如以太坊主网为 1）
+ * @returns Gas 价格预言机数据
+ *
+ * @example
+ * const gasOracle = await getGasOracle(1);
+ * console.log(`安全价格: ${gasOracle.result.SafeGasPrice} Gwei`);
+ * console.log(`建议价格: ${gasOracle.result.ProposeGasPrice} Gwei`);
+ * console.log(`快速价格: ${gasOracle.result.FastGasPrice} Gwei`);
+ */
+export async function getGasOracle(
+  chainId: number
+): Promise<EtherscanApiResponse<GasOracleResult>> {
+  if (!chainId) {
+    throw new Error("链 ID 参数是必需的");
+  }
+
+  const params: Record<string, string> = {
+    chainid: chainId.toString(),
+    module: "gastracker",
+    action: "gasoracle",
+  };
+
+  return callEtherscanApi<GasOracleResult>(params);
+}
+
+/**
+ * 估算交易所需的 Gas 数量
+ *
+ * 通过 Etherscan 的 eth_estimateGas 代理接口估算执行特定交易所需的 Gas 数量。
+ * 这对于在发送交易前预估费用非常有用。
+ *
+ * ## 支持范围
+ *
+ * **支持的链：**
+ * - 以太坊主网 (chainId: 1)
+ * - 以太坊测试网（Sepolia、Goerli 等）
+ * - 所有 Etherscan 支持的 EVM 兼容链（BSC、Polygon、Arbitrum、Optimism 等）
+ *   只要该链有对应的 Etherscan API 服务即可
+ *
+ * **支持的合约：**
+ * - 任意智能合约的任意函数调用
+ * - 不限于特定代币（USDT、USDC、DAI 等都可以）
+ * - 包括 ERC20、ERC721、ERC1155 等各种标准合约
+ * - 也支持普通 ETH 转账（data 为空或 "0x"）
+ *
+ * **工作原理：**
+ * 该函数调用 Etherscan 的 eth_estimateGas JSON-RPC 代理接口，
+ * Etherscan 会将请求转发给对应链的节点执行模拟调用，返回估算的 Gas 消耗量。
+ *
+ * @param chainId - 区块链的 Chain ID（如以太坊主网为 1，BSC 为 56）
+ * @param options - 交易参数
+ * @param options.to - 目标地址（合约地址或 EOA 地址）
+ * @param options.data - 调用数据（合约函数的 ABI 编码，普通转账可传 "0x"）
+ * @param options.value - 发送的 ETH 数量（十六进制，可选）
+ * @param options.from - 发送方地址（可选，某些合约调用可能需要）
+ * @returns 估算的 Gas 数量（十六进制字符串）
+ *
+ * @example
+ * // 估算 USDT transfer 调用的 Gas（以太坊主网）
+ * const gasEstimate = await estimateGas(1, {
+ *   to: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+ *   data: "0xa9059cbb000000000000000000000000...",
+ * });
+ * const gasUnits = parseInt(gasEstimate.result, 16);
+ *
+ * @example
+ * // 估算 BSC 上 USDT transfer 的 Gas
+ * const gasEstimate = await estimateGas(56, {
+ *   to: "0x55d398326f99059fF775485246999027B3197955", // BSC USDT
+ *   data: "0xa9059cbb000000000000000000000000...",
+ * });
+ */
+export async function estimateGas(
+  chainId: number,
+  options: {
+    to: string;
+    data: string;
+    value?: string;
+    from?: string;
+  }
+): Promise<EtherscanApiResponse<string>> {
+  if (!chainId) {
+    throw new Error("链 ID 参数是必需的");
+  }
+
+  if (!options.to) {
+    throw new Error("目标地址参数是必需的");
+  }
+
+  if (!options.data) {
+    throw new Error("调用数据参数是必需的");
+  }
+
+  const params: Record<string, string> = {
+    chainid: chainId.toString(),
+    module: "proxy",
+    action: "eth_estimateGas",
+    to: options.to,
+    data: options.data,
+  };
+
+  if (options.value) {
+    params.value = options.value;
+  }
+
+  if (options.from) {
+    params.from = options.from;
+  }
+
+  return callEtherscanApi<string>(params);
 }

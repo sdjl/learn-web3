@@ -1,0 +1,262 @@
+---
+globs: app/**/actions.ts
+alwaysApply: false
+---
+
+# Server Action 文件编写规范
+
+## 基本要求
+
+### 1. 文件首行必须是 "use server"
+
+```typescript
+"use server";
+
+// 其他代码...
+```
+
+**重要**：`"use server"` 必须是文件的第一行有效代码。
+
+### 2. 导出的函数必须是 async
+
+Server Action 必须是异步函数，这是 Next.js 的要求。
+
+```typescript
+// ✅ 正确：async 函数
+export async function fetchData() {
+  // ...
+}
+
+// ❌ 错误：同步函数不能作为 Server Action
+export function fetchData() {
+  // ...
+}
+```
+
+### 3. 不能导出 const 常量
+
+Server Action 文件只能导出 async 函数，不能导出常量。常量应该放在 `utils.ts` 文件中。
+
+```typescript
+// ❌ 错误：不能在 actions.ts 中导出常量（会导致编译错误）
+export const API_URL = "https://api.example.com";
+
+// ✅ 正确：从 utils.ts 导入常量
+import { API_URL, MAINNET_CHAIN_ID } from "./utils";
+
+export async function fetchData() {
+  // 使用导入的常量...
+}
+```
+
+**常量应该放在 utils.ts 中：**
+
+```typescript
+// utils.ts
+export const API_URL = "https://api.example.com";
+export const MAINNET_CHAIN_ID = 1;
+```
+
+```typescript
+// actions.ts
+"use server";
+
+import { API_URL, MAINNET_CHAIN_ID } from "./utils";
+
+export async function fetchData() {
+  // 使用常量...
+}
+```
+
+## 注释规范
+
+### 1. 文件头部注释
+
+每个 actions.ts 文件必须包含头部注释，说明文件的作用和学习要点：
+
+```typescript
+"use server";
+
+// ============================================================
+// [功能名称] Server Action
+// ============================================================
+// 作用：
+// - [作用1]
+// - [作用2]
+// - [作用3]
+//
+// 学习要点：
+// - [学习要点1]
+// - [学习要点2]
+// - [学习要点3]
+// ============================================================
+```
+
+**示例：**
+
+```typescript
+"use server";
+
+// ============================================================
+// Gas 估算 Server Actions
+// ============================================================
+// 作用：
+// - 获取当前 Gas 价格（从 Etherscan API 的 gasoracle 接口）
+// - 估算 USDT transfer 和 approve 操作的 Gas 费用
+//
+// 学习要点：
+// - 如何使用 Viem 编码合约函数调用数据
+// - 如何通过 Etherscan API 估算 Gas 消耗
+// - 如何获取实时 Gas 价格并计算交易费用
+// ============================================================
+```
+
+### 2. 导入说明注释
+
+从外部库（如 Viem、Wagmi）导入的函数，必须添加说明注释，解释每个函数的用途：
+
+```typescript
+// ============================================================
+// Viem 库导入说明
+// ============================================================
+// encodeFunctionData: 将合约函数调用编码为十六进制数据
+//   - 作用：把「调用哪个函数 + 传什么参数」编码成区块链能理解的格式
+//   - 输入：ABI（合约接口定义）、函数名、参数
+//   - 输出：0x 开头的十六进制字符串，如 "0xa9059cbb000000..."
+//   - 场景：发送交易前，需要把函数调用编码成 data 字段
+//
+// parseUnits: 将人类可读的数字转换为区块链使用的最小单位
+//   - 作用：处理代币精度，避免浮点数精度问题
+//   - 输入：数字字符串（如 "100"）和小数位数（如 USDT 是 6 位）
+//   - 输出：BigInt 类型的最小单位数值（如 100 USDT = 100000000n）
+//   - 场景：用户输入 100 USDT，需要转换为合约能理解的 100 * 10^6
+import { encodeFunctionData, parseUnits } from "viem";
+```
+
+从内部库导入时，简要说明每个导入的作用即可：
+
+```typescript
+// ============================================================
+// 内部库导入
+// ============================================================
+// getTokenAddress: 根据链 ID 和代币符号获取代币合约地址
+import { getTokenAddress } from "@/lib/config/addresses";
+// TOKENS: 代币符号常量（如 TOKENS.USDT = "USDT"）
+// TOKEN_INFO: 代币信息（包含 decimals 精度等）
+import { TOKENS, TOKEN_INFO } from "@/lib/config/tokens";
+```
+
+### 3. 函数注释（JSDoc 风格）
+
+每个导出的函数必须使用 JSDoc 风格的注释，详细说明：
+
+- 函数的作用和工作流程
+- 每个参数的含义和格式
+- 返回值的结构和字段说明
+- 使用示例（如适用）
+
+```typescript
+/**
+ * 从 Etherscan API 获取当前以太坊网络的 Gas 价格信息
+ *
+ * Gas 价格会根据网络拥堵程度实时变化：
+ * - 网络繁忙时，Gas 价格会上涨
+ * - 网络空闲时，Gas 价格会下降
+ *
+ * @returns 返回一个包含以下字段的对象：
+ * - `success`: boolean - 是否成功获取数据
+ * - `error`: string | undefined - 失败时的错误信息
+ * - `data`: GasPriceInfo | undefined - 成功时的 Gas 价格数据，包含：
+ *   - `lastBlock`: string - 最新区块号，表示数据的时效性
+ *   - `safeGasPrice`: string - 安全价格（Gwei），交易确认较慢（约几分钟）
+ *   - `proposeGasPrice`: string - 建议价格（Gwei），平均确认时间（约 1-2 分钟）
+ *   - `fastGasPrice`: string - 快速价格（Gwei），快速确认（约 15-30 秒）
+ *   - `suggestBaseFee`: string - 建议的基础费用（Gwei），EIP-1559 后引入的概念
+ *
+ * @example
+ * const result = await fetchGasPrices();
+ * if (result.success) {
+ *   console.log(`建议 Gas 价格: ${result.data.proposeGasPrice} Gwei`);
+ * }
+ */
+export async function fetchGasPrices(): Promise<{
+  success: boolean;
+  error?: string;
+  data?: GasPriceInfo;
+}> {
+  // ...
+}
+```
+
+### 4. 步骤注释
+
+复杂的函数应该使用步骤注释，帮助读者理解代码的执行流程：
+
+```typescript
+export async function estimateUsdtGas(
+  operationType: OperationType,
+  toAddress: string,
+  amount: string,
+  spenderAddress: string
+): Promise<GasEstimateResult> {
+  try {
+    // ============================================================
+    // 步骤 1：将人类可读的金额转换为合约使用的最小单位
+    // ============================================================
+    // USDT 的精度是 6 位小数，所以：
+    // - 用户输入 "100"（100 USDT）
+    // - 需要转换为 100 * 10^6 = 100000000（最小单位）
+    // parseUnits 函数帮我们处理这个转换，避免浮点数精度问题
+    const decimals = TOKEN_INFO[TOKENS.USDT].decimals;
+    const amountInUnits = parseUnits(amount || "1", decimals);
+
+    // ============================================================
+    // 步骤 2：编码合约函数调用数据
+    // ============================================================
+    // 为什么需要编码？
+    // - 区块链交易的 data 字段需要是十六进制格式
+    // - encodeFunctionData 会把「函数名 + 参数」编码成这种格式
+    // - 编码结果包含：函数选择器（4字节）+ 参数编码
+    let data: `0x${string}`;
+    // ...
+
+    // ============================================================
+    // 步骤 3：并行获取 Gas 估算和 Gas 价格
+    // ============================================================
+    // 使用 Promise.all 并行请求，提高效率
+    const [gasEstimateResponse, gasPricesResponse] = await Promise.all([
+      // ...
+    ]);
+
+    // ...
+  } catch (error) {
+    // ...
+  }
+}
+```
+
+### 5. 关键代码注释
+
+对于关键的代码行，添加行内注释解释其作用：
+
+```typescript
+// 调用 Etherscan API 的 gasoracle 接口获取实时 Gas 价格
+const response = await getGasOracle(MAINNET_CHAIN_ID);
+
+// eth_estimateGas 返回的是十六进制字符串，如 "0xb58f"
+// 需要转换为十进制数字才能用于计算
+const gasUnits = parseInt(gasEstimateResponse.result, 16);
+
+// 将 Gwei 转换为 ETH（1 ETH = 10^9 Gwei）
+const estimatedCostEth = {
+  safe: ((gasUnits * safePrice) / 1e9).toFixed(8),
+  // ...
+};
+```
+
+## 注意事项
+
+1. **面向初学者**：注释要详细，假设读者不了解 Web3 开发
+2. **解释"为什么"**：不只是说明代码做什么，还要解释为什么这样做
+3. **使用中文**：所有注释使用中文，方便中文读者理解
+4. **保持一致**：遵循统一的注释风格和格式
