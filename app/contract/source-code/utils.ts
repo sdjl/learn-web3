@@ -11,9 +11,7 @@
 // ============================================================
 
 import type { ContractInfo } from "./types";
-
-/** GitHub 项目地址 */
-export const GITHUB_REPO_URL = "https://github.com/sdjl/learn-web3";
+import { GITHUB_REPO_URL } from "@/lib/config/navigation";
 
 /** 合约源代码在 GitHub 上的基础路径 */
 export const GITHUB_CONTRACTS_PATH = `${GITHUB_REPO_URL}/blob/main/contracts`;

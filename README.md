@@ -2,7 +2,7 @@
 
 这是一个个人 Web3 学习项目，记录了我在学习 Web3 开发过程中的实践代码和心得体会。
 
-[查看在线演示](https://learn-web3-nine.vercel.app)
+[查看在线演示](https://learn-web3.guoranzan.com)
 
 ## 项目介绍
 

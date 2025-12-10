@@ -102,10 +102,7 @@ export function Form() {
       {/* 当前网络提示 */}
       {chain && (
         <div className="mb-6 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
-          你正在{" "}
-          <span className="font-bold text-primary">
-            {chain.name}
-          </span>{" "}
+          你正在 <span className="font-bold text-primary">{chain.name}</span>{" "}
           网络上转账
         </div>
       )}
@@ -140,7 +137,8 @@ export function Form() {
             className="mb-2 block text-sm font-medium text-foreground"
           >
             转账金额 (
-            {chain?.nativeCurrency?.symbol || balanceData?.symbol || TOKENS.ETH})
+            {chain?.nativeCurrency?.symbol || balanceData?.symbol || TOKENS.ETH}
+            )
           </label>
           <input
             id="amount"
