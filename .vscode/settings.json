@@ -16,5 +16,11 @@
   "[*.mdc]": {
     "editor.formatOnSave": false
   },
-  "cSpell.words": ["chainid", "neondatabase", "txreceipt"]
+  "cSpell.words": [
+    "chainid",
+    "neondatabase",
+    "txreceipt",
+    "viem",
+    "wagmi"
+  ]
 }

@@ -14,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAccount } from "wagmi";
 import { formatEther } from "viem";
 import { useState } from "react";
+import { TOKENS } from "@/lib/config/tokens";
 import { getTransactions } from "../actions";
 import type {
   Transaction,
@@ -69,9 +70,9 @@ export function TransactionList() {
       emptyText="暂无交易记录"
       onRefresh={handleRefresh}
       formatValue={formatValue}
-      currencySymbol={chain?.nativeCurrency?.symbol || "ETH"}
+      currencySymbol={chain?.nativeCurrency?.symbol || TOKENS.ETH}
       formatFee={formatFee}
-      feeCurrencySymbol={chain?.nativeCurrency?.symbol || "ETH"}
+      feeCurrencySymbol={chain?.nativeCurrency?.symbol || TOKENS.ETH}
       blockExplorerUrl={
         chain?.blockExplorers?.default.url || "https://etherscan.io"
       }

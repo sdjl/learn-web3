@@ -7,6 +7,7 @@
 // ============================================================
 
 import { useAccount } from "wagmi";
+import { TOKENS } from "@/lib/config/tokens";
 import type { BasicInfoProps } from "../types";
 
 export function BasicInfo({ contractInfo }: BasicInfoProps) {
@@ -62,7 +63,7 @@ export function BasicInfo({ contractInfo }: BasicInfoProps) {
         <div className="mt-1">
           <span className="text-lg font-semibold">
             {contractInfo.balanceFormatted}{" "}
-            {chain?.nativeCurrency?.symbol || "ETH"}
+            {chain?.nativeCurrency?.symbol || TOKENS.ETH}
           </span>
         </div>
       </div>

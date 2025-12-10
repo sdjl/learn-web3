@@ -18,6 +18,7 @@ import {
   useWaitForTransactionReceipt,
 } from "wagmi";
 import { parseEther, formatEther, isAddress } from "viem";
+import { TOKENS } from "@/lib/config/tokens";
 
 export function Form() {
   // 获取钱包连接状态和账户信息
@@ -139,7 +140,7 @@ export function Form() {
             className="mb-2 block text-sm font-medium text-foreground"
           >
             转账金额 (
-            {chain?.nativeCurrency?.symbol || balanceData?.symbol || "ETH"})
+            {chain?.nativeCurrency?.symbol || balanceData?.symbol || TOKENS.ETH})
           </label>
           <input
             id="amount"
