@@ -28,12 +28,13 @@ export const navItems: NavItem[] = [
     children: [
       { href: "/trade/transfer", label: "转账" },
       { href: "/trade/transactions", label: "交易历史" },
+      { href: "/trade/gas-estimator", label: "Gas 估算" },
     ],
   },
   {
     label: "监听",
     children: [
-      { href: "/monitor/usdt-monitor", label: "USDT 交易监听" },
+      { href: "/monitor/usdt-transactions", label: "USDT 交易监听" },
       { href: "/monitor/usdt-events", label: "USDT 合约事件" },
     ],
   },
@@ -43,9 +44,6 @@ export const navItems: NavItem[] = [
   },
   {
     label: "工具",
-    children: [
-      { href: "/tools/chain-balance", label: "链切换" },
-      { href: "/tools/gas-estimator", label: "Gas 估算" },
-    ],
+    children: [{ href: "/tools/chain-balance", label: "链切换" }],
   },
 ];
